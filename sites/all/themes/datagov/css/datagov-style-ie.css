@@ -1,0 +1,39 @@
+/* IE-Specific CSS Fixes */
+
+/* Shrinking Panel Page Content Width */
+div.panel-flexible,
+div.panel-display {
+    width:99.9% !important;
+}
+
+/* Text Resize Widget */
+a#text_resize_decrease,
+a#text_resize_reset,
+a#text_resize_increase {
+    display:block !important;
+    float:left !important;
+}
+
+/* Search Block Form Styling */
+form#search-block-form {
+    width:330px;
+}
+form#search-block-form div.form-item-search-block-form {
+    float:left;
+}
+
+/* Horizontal Rule Fix for IE */
+
+
+hr {
+    display : list-item;
+    list-style : url('../images/hr-bg.jpg') inside;
+    filter : alpha(opacity=0);
+    margin-left 0;
+    width : 0;
+ }
+.view-map-gallery .views-row {
+    float: left;
+    margin: 0 15px;
+}
+.search-block-form{margin-bottom: 10px;}

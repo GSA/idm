@@ -1,0 +1,58 @@
+/* ---------- Color form ----------- */
+#color_scheme_form #palette .form-item {
+    width: 28em;
+}
+#color_scheme_form #palette .form-item label {
+    width: 20em;
+}
+
+/* ---------- Preview Styles ----------- */
+
+html.js #preview {
+    clear: both;
+    float: none !important;
+}
+
+/* Overall */
+#preview {
+    font: 300 20px/1.5 "Helvetica Neue", Arial, 'Liberation Sans', FreeSans, sans-serif;
+    color: #333;
+    margin: 30px 0 50px 0;
+    padding: 0;
+    width: 100%;
+}
+
+/* Header */
+#preview-header {
+    height: 100px;
+    padding: 0 1em 40px;
+}
+#preview-header h1 {
+    float: left;
+    margin: 0.25em 0 0;
+}
+
+/* Main menu */
+#preview-main-menu {
+    padding: 1.5em 0;
+}
+#preview-main-menu ul {
+    margin: 0;
+}
+#preview-main-menu ul li a {
+    padding: 0.5em 1em;
+}
+
+/* Main content */
+#preview-main {
+    padding: 0.5em;
+}
+#preview h1,
+#preview h2 {
+    color: #333333;
+    font-weight: 300;
+    line-height: 1em;
+}
+#preview h1 {
+    font-size: 3em;
+}
