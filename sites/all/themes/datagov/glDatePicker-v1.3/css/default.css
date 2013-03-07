@@ -1,0 +1,172 @@
+/*
+	glDatePicker default style
+
+	http://code.gautamlad.com/glDatePicker/
+	https://github.com/glad/glDatePicker/
+*/
+
+/* Calendar container div */
+.gldp-default
+{
+	float:left;
+	font-family:"Helvetica Neue" !important;
+	background-color:#ccc !important;
+	font-size:0.8em !important;
+}
+
+/* Table style */
+.gldp-default table
+{
+	border-collapse:inherit;
+}
+
+/* Default row height */
+.gldp-default tr
+{
+	height:47px;
+}
+
+/* Default style of cell */
+.gldp-default td
+{
+	margin:0;
+	padding:0;
+	width:60px;
+	text-align:center;
+}
+
+/* Previous and Next arrows */
+.gldp-default-prevnext
+{
+	font-family:"times new roman";
+	color:#58b3c7;
+	cursor:pointer;
+	font-weight:bold;
+}
+.gldp-default-prevnext.prev {
+    text-align: right;
+}
+.gldp-default-prevnext.next {
+    text-align: left;
+}
+
+/* Month Year title */
+.gldp-default-monyear
+{
+	color:#58b3c7;
+	font-size:2em !important;
+    font-family: NovecentowideBold;
+    cursor: pointer;
+}
+
+/* Days of the week (Sun, Mon, ...) */
+.gldp-default tr.gldp-default-dow {
+	color:#6c7174;
+	font-size:1em !important;
+    background-color: #fff;
+    height: 27px;
+}
+.gldp-default tr.gldp-default-dow td {
+    border: 0 none;
+}
+
+.gldp-default tr.gldp-default-month {
+    height: 53px;
+    background-color: #f8f8f8;
+    background: -moz-linear-gradient(top,  #f8f8f8 0%, #f0f0f0 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(100%,#f0f0f0));
+    background: -webkit-linear-gradient(top,  #f8f8f8 0%,#f0f0f0 100%);
+    background: -o-linear-gradient(top,  #f8f8f8 0%,#f0f0f0 100%);
+    background: -ms-linear-gradient(top,  #f8f8f8 0%,#f0f0f0 100%);
+    background: linear-gradient(top,  #f8f8f8 0%,#f0f0f0 100%);
+    color: #58b3c7;
+}
+
+/* Selectable days */
+.gldp-default-day
+{
+	background-color:#fff;
+	color:#222;
+	border:solid 1px #F1F3F5;
+	font-weight:bold;
+}
+.gldp-default-day-hover
+{
+	background-color:#fff;
+	color:#f82200;
+	border:solid 1px #58B3C7;
+	cursor:pointer;
+	font-weight:bold;
+}
+.one-event { background: url('../../images/1event-off.png'); }
+.two-events { background: url('../../images/2events-off.png'); }
+.three-events { background: url('../../images/3events-off.png'); }
+.many-events { background: url('../../images/multievents-off.png'); }
+
+/* Selected days */
+/*.gldp-default { background: url('../../images/calendar-selected.png') no-repeat -9999px -9999px; } /* hidden away, used for preloading */
+.gldp-default-selected {
+	background: url('../../images/calendar-selected.png');
+	color:#fff;
+	border:solid 1px #58B3C7;
+    cursor:pointer;
+}
+.gldp-default-selected.one-event { background: url('../../images/1event-on.png'); }
+.gldp-default-selected.two-events { background: url('../../images/2events-on.png'); }
+.gldp-default-selected.three-events { background: url('../../images/3events-on.png'); }
+.gldp-default-selected.many-events { background: url('../../images/multievents-on.png'); }
+.gldp-default-selected .selected {
+    color:#fff;
+}
+
+/* Today */
+.gldp-default-today {
+	background-color:#fff;
+	color:#fff;
+	font-weight:bold;
+    border: 1px solid #85DDF1;
+}
+.gldp-default-today-hover
+{
+	background-color:#fff;
+	color:#f82200;
+	border:solid 1px #58B3C7;
+	cursor:pointer;
+	font-weight:bold;
+}
+
+/* Weekends */
+.gldp-default-sat, .gldp-default-sun
+{
+	background-color:#fff;
+	color:#004f8f;
+    border:solid 1px #F1F3F5;
+	font-weight:bold;
+}
+.gldp-default-sat-hover, .gldp-default-sun-hover
+{
+	background-color:#fff;
+	color:#004f8f;
+	border:solid 1px #58B3C7;
+	cursor:pointer;
+	font-weight:bold;
+}
+.gldp-default-sat.selected, .gldp-default-sun.selected {
+    border: 1px solid #58B3C7;
+}
+
+/* Non-selectable day.  Includes:previous/next month days and days that fall in the allowOld and endDate conditions */
+.gldp-default-noday {
+	background-color:#fff;
+	border: solid 1px #F1F3F5;
+	color:#ddd;
+	cursor:default;
+}
+.gldp-default-noday .noday {
+    color: #ccc;
+}
+
+.gldp-days {
+    font-size: 1.4em;
+    font-weight: 500;
+}
