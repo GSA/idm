@@ -1,0 +1,68 @@
+<?php
+
+/**
+ * @file
+ * Install function for the field_conditional_state module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function field_conditional_state_install() {
+  // Set the module weight to 1000.
+  db_query("UPDATE {system} SET weight = 100 WHERE name = 'field_conditional_state'");
+}
+
+/**
+ * Implements hook_schema().
+ */
+function field_conditional_state_schema() {
+  $schema['field_conditional_state'] = array(
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'The internal identifier condition.',
+      ),
+      'field_name' => array(
+        'type' => 'varchar',
+        'length' => '32',
+        'not null' => TRUE,
+        'description' => 'The target field name.',
+      ),
+     'control_field' => array(
+        'type' => 'varchar',
+        'length' => '32',
+        'not null' => TRUE,
+        'description' => 'The control field name.',
+      ),
+      'state' => array(
+        'type' => 'varchar',
+        'length' => '15',
+        'not null' => TRUE,
+        'description' => 'The state type.',
+      ),
+     'bundle' => array(
+        'type' => 'varchar',
+        'length' => '127',
+        'not null' => TRUE,
+        'description' => 'The bundle type.',
+      ),
+      'trigger_values' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'description' => 'The trigger values.',
+      ),
+      'condition_type' => array(
+        'type' => 'varchar',
+        'length' => '3',
+        'not null' => TRUE,
+        'description' => 'The matching type.',
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  return $schema;
+}
