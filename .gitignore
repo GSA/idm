@@ -6,3 +6,6 @@ cache/
 files/
 sites/*/files
 sites/*/private
+
+# Other
+saml
