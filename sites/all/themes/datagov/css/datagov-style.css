@@ -2861,3 +2861,6 @@ margin-top: 3px;
 fieldset.captcha{
     clear: both;
 }
+.field-type-text.field-name-field-organization.field-widget-text-textfield.form-wrapper {
+    clear: both;
+}
