@@ -1,0 +1,93 @@
+diff --git a/captcha.module b/captcha.module
+index 5107452..1360b04 100644
+--- a/captcha.module
++++ b/captcha.module
+@@ -216,12 +216,22 @@ function captcha_element_process($element, &$form_state, $complete_form) {
+     '#value' => $captcha_sid,
+   );
+ 
+-  // Additional one time CAPTCHA token: store in database and send with form.
+-  $captcha_token = md5(mt_rand());
+-  db_update('captcha_sessions')
+-    ->fields(array('token' => $captcha_token))
+-    ->condition('csid', $captcha_sid)
+-    ->execute();
++  $captcha_token = db_select('captcha_sessions', 'c')
++                      ->fields('c', array('token'))
++                      ->condition('csid', $captcha_sid)
++                      ->execute()
++                      ->fetchAssoc();
++  $captcha_token = $captcha_token['token'];
++  if (!isset($captcha_token) && !$form_state['submitted']) {
++	    // Additional one time CAPTCHA token: store in database and send with form.
++	$captcha_token = md5(mt_rand());
++	db_update('captcha_sessions')
++	      ->fields(array('token' => $captcha_token))
++	      ->condition('csid', $captcha_sid)
++	      ->execute();
++	  }
++
++
+   $element['captcha_token'] = array(
+     '#type' => 'hidden',
+     '#value' => $captcha_token,
+@@ -344,6 +354,9 @@ function captcha_form_alter(&$form, &$form_state, $form_id) {
+       // Get placement in form and insert in form.
+       $captcha_placement = _captcha_get_captcha_placement($form_id, $form);
+       _captcha_insert_captcha_element($form, $captcha_placement, $captcha_element);
++
++      // Add #submit functions to invalidate captcha
++      $form['#submit'][] = 'captcha_submit_invalidate_session';
+     }
+   }
+   else if (
+@@ -428,6 +441,20 @@ function captcha_form_alter(&$form, &$form_state, $form_id) {
+ }
+ 
+ /**
++  * Invalidate CAPTCHA token to avoid reuse.
++  * @param unknown_type $form
++  * @param unknown_type $form_state
++  */
++function captcha_submit_invalidate_session($form, $form_state) {
++	if (isset($form_state['captcha_info']['captcha_sid'])) {
++		db_update('captcha_sessions')
++			->fields(array('token' => NULL))
++			->condition('csid', $form_state['captcha_info']['captcha_sid'])
++		    ->execute();
++	}
++}
++
++/**
+  * CAPTCHA validation function to tests strict equality.
+  * @param $solution the solution of the test.
+  * @param $response the response to the test.
+@@ -454,7 +481,7 @@ function captcha_validate_case_insensitive_equality($solution, $response) {
+  * @return TRUE when equal (ignoring spaces), FALSE otherwise.
+  */
+ function captcha_validate_ignore_spaces($solution, $response) {
+-  return preg_replace('/\s/', '', $solution) === preg_replace('/\s/', '', $response);
++  return preg_replace('/\s/', '', $solution) == preg_replace('/\s/', '', $response);
+ }
+ 
+ /**
+@@ -464,7 +491,7 @@ function captcha_validate_ignore_spaces($solution, $response) {
+  * @return TRUE when equal (ignoring spaces), FALSE otherwise.
+  */
+ function captcha_validate_case_insensitive_ignore_spaces($solution, $response) {
+-  return preg_replace('/\s/', '', drupal_strtolower($solution)) === preg_replace('/\s/', '', drupal_strtolower($response));
++  return preg_replace('/\s/', '', drupal_strtolower($solution)) == preg_replace('/\s/', '', drupal_strtolower($response));
+ }
+ 
+ /**
+@@ -533,10 +560,6 @@ function _captcha_get_posted_captcha_info($element, $form_state, $this_form_id)
+           // Invalidate the CAPTCHA session.
+           $posted_captcha_sid = NULL;
+         }
+-        // Invalidate CAPTCHA token to avoid reuse.
+-        db_update('captcha_sessions')
+-          ->fields(array('token' => NULL))
+-          ->condition('csid', $posted_captcha_sid);
+       }
+     }
+     else {

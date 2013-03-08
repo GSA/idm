@@ -1,0 +1,528 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function field_conditional_state_menu() {
+  $items = array();
+  foreach (entity_get_info() as $entity_type => $entity_info) {
+    if ($entity_info['fieldable']) {
+      foreach ($entity_info['bundles'] as $bundle_name => $bundle_info) {
+        if (isset($bundle_info['admin'])) {
+          // Extract path information from the bundle.
+          $path = $bundle_info['admin']['path'];
+          if (isset($bundle_info['admin']['bundle argument'])) {
+            $bundle_arg = $bundle_info['admin']['bundle argument'];
+            $bundle_pos = (string) $bundle_arg;
+          }
+          else {
+            $bundle_arg = $bundle_name;
+            $bundle_pos = '0';
+          }
+          $field_position = count(explode('/', $path)) + 1;
+
+          $items["$path/fields/%field_ui_menu/field-conditional-states"] = array(
+            'load arguments' => array($entity_type, $bundle_arg, $bundle_pos, '%map'),
+            'title' => 'Conditional states',
+            'page callback' => 'drupal_get_form',
+            'page arguments' => array('field_conditional_state_settings_form', $field_position),
+            'type' => MENU_LOCAL_TASK,
+            'access arguments' => array('administer field conditional states'),
+            'weight' => 4,
+            'file' => 'field_conditional_state.admin.inc'
+          );
+        }
+      }
+    }
+  }
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function field_conditional_state_permission() {
+  return array(
+    'administer field conditional states' => array(
+      'title' => t('Administer field conditional states'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function field_conditional_state_theme($existing, $type, $theme, $path) {
+  return array(
+    'field_conditional_state_settings_form' => array(
+      'render element' => 'form',
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_delete_instance().
+ */
+function field_conditional_state_field_delete_instance($instance) {
+  $bundle = $instance['bundle'];
+  $instance_name = $instance['field_name'];
+  $query_args = array(
+    ':bundle' => $bundle,
+    ':field_name' => $instance_name,
+    ':control_field' => $instance_name,
+  );
+  $result = db_query("SELECT count(*) AS count FROM {field_conditional_state} WHERE bundle = :bundle AND (field_name = :field_name OR control_field = :control_field)", $query_args)->fetchObject();
+  // Delete conditions for deleted instance.
+  if ($result->count > 0) {
+    $delete_trigger_instance = db_delete('field_conditional_state')
+      ->condition('field_name', $instance_name)
+      ->condition('bundle', $bundle)
+      ->execute();
+    $delete_control_instance = db_delete('field_conditional_state')
+      ->condition('control_field', $instance_name)
+      ->condition('bundle', $bundle)
+      ->execute();
+  }
+}
+
+/**
+ * Implements hook_field_attach_delete_bundle().
+ */
+function field_conditional_state_field_attach_delete_bundle($entity_type, $bundle, $instances) {
+  $query_args = array(':bundle' => $bundle);
+  $result = db_query("SELECT count(*) AS count FROM {field_conditional_state} WHERE bundle = :bundle", $query_args)->fetchObject();
+  // Delete conditions for deleted bundle.
+  if ($result->count > 0) {
+    $delete_trigger_field = db_delete('field_conditional_state')
+      ->condition('bundle', $bundle, '=')
+      ->execute();
+  }
+}
+
+/**
+ * Implements hook_field_state().
+ */
+function field_conditional_state_field_state() {
+  return array(
+    'visible' => array(
+      'state_handler' => 'field_conditional_state_handle_visibility',
+      'validate_handler' => 'field_conditional_state_element_validate',
+    ),
+    'invisible' => array(
+      'state_handler' => 'field_conditional_state_handle_visibility',
+      'validate_handler' => 'field_conditional_state_element_validate',
+    ),
+    'enabled' => array(
+      'state_handler' => 'field_conditional_state_handle_availability',
+      'validate_handler' => 'field_conditional_state_element_validate',
+    ),
+    'disabled' => array(
+      'state_handler' => 'field_conditional_state_handle_availability',
+      'validate_handler' => 'field_conditional_state_element_validate',
+    ),
+    'required' => array(
+      'state_handler' => 'field_conditional_state_handle_requirements',
+    ),
+  );
+}
+
+/**
+ * Implements hook_entity_view().
+ * hide field in entity view if state for controlled field
+ * is set to visible or infisible based on the value from control field
+ */
+function field_conditional_state_entity_view($entity, $type, $view_mode, $langcode) {
+  $types = field_conditional_state_get_bundle_types();
+  foreach ($entity->content as $field_name => $field_content) {
+    if (isset($field_content['#bundle'])) {
+      $field_conditions = field_conditional_state_get_field_conditions($field_name, $field_content['#bundle']);
+      $data = array($type, $view_mode, $langcode);
+      drupal_alter('field_conditional_state_entity_view', $field_conditions, $entity, $data);
+      if ($field_conditions) {
+        foreach ($field_conditions as $condition) {
+          $lang = $field_content['#language'];
+          $control_field_name = $condition['control_field'];
+          $control_values = $entity->$control_field_name;
+          $trigger_value_exist = field_conditional_state_trigger_value_in_field_value($control_values[$lang], $condition['trigger_values'], $condition['condition_type']);
+          if (($condition['state'] == 'visible' && !$trigger_value_exist) || ($condition['state'] == 'invisible' && $trigger_value_exist)) {
+            $entity->content[$field_name]['#access'] = FALSE;
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_element_info_alter().
+ */
+function field_conditional_state_element_info_alter(&$type) {
+  foreach ($type as $key => $value) {
+    if (isset($value['#input']) && $value['#input'] == TRUE) {
+      $type[$key]['#process'][] = 'field_conditional_state_element_process';
+    }
+  }
+}
+
+/**
+ * @todo.
+ */
+function field_conditional_state_element_process($element, &$form_state, $form) {
+  if (isset($element['#field_name']) && isset($element['#bundle'])) {
+    $path = drupal_get_path('module', 'field_conditional_state');
+    $element['#attached']['js'][] = "$path/js/conditional_state.js";
+    $element['#attached']['js'][] = "$path/js/required_conditional_state.js";
+    $control_field = field_conditional_state_is_control_field($element['#field_name'], $element['#bundle']);
+    // Check if element is control element.
+    if ($control_field) {
+      $element['#prefix'] = '<div class="conditional_state_control_field_' . $element['#field_name'] . '">';
+      $element['#suffix'] = '</div>';
+    }
+    // Get element conditions.
+    $element_conditions = field_conditional_state_get_field_conditions($element['#field_name'], $element['#bundle']);
+    
+    if ($element_conditions) {
+      $element_states = field_conditional_state_set_field_state($element_conditions);
+      $conditional_states = field_conditional_state_module_invoke();
+      $field_parents = $element['#field_parents'];
+      $form_element = &$form;
+      if (!empty($field_parents)) {
+        foreach ($field_parents as $parent) {
+          $form_element = &$form_element[$parent];
+        }
+      }
+      foreach ($element_states as $state => $condition) {
+        if (isset($form_element[$element['#field_name']])) {
+          $function = $conditional_states[$state]['state_handler'];
+          $form_element[$element['#field_name']] = $function($state, $condition, $form_element[$element['#field_name']], $element);
+          $form_element[$element['#field_name']]['#bundle'] = $element['#bundle'];
+         // print_r($form_element[$element['#field_name']]); die;
+        }
+      }
+
+      foreach ($element_conditions as $key => $condition) {
+        if (isset($conditional_states[$state]['validate_handler'])) {
+          $validate_function = $conditional_states[$state]['validate_handler'];
+          $form_element[$element['#field_name']]['#element_validate'][] = $validate_function;
+          $form_element[$element['#field_name']]['#conditional_state'] = $condition;
+        }
+        if ($form_state['input']) {
+          field_conditional_state_set_requirements($element, $form_state, $condition);
+        }
+      }
+    }
+  }
+  return $element;
+}
+
+/**
+ * @todo.
+ * set empty value for invisible field and requirements to false
+ */
+function field_conditional_state_element_validate(&$element, &$form_state) {
+  $lang = $element['#language'];
+  $element_status = field_conditional_state_element_status($element, $form_state['input'], $element['#conditional_state']);
+  if ($element_status == 'not_available') {
+    form_set_value($element[$lang], array(), $form_state);
+  }
+}
+
+/**
+ * @todo.
+ * if field is not visible or disabled set requirements to false
+ */
+function field_conditional_state_set_requirements(&$element, $form_state, $condition) {
+  $element_status = field_conditional_state_element_status($element, $form_state['input'], $condition);
+  if ($element_status == 'not_available') {
+    $element['#required'] = FALSE;
+  }
+  elseif ($element_status == 'required') {
+    $element['#required'] = TRUE;
+  }
+}
+
+/*
+ * @todo.
+ * check the element status when form is being validated
+ */
+function field_conditional_state_element_status(&$element, $input, $condition) {
+  $lang = $element['#language'];
+  $field_name = isset($element['#field_name']) ? $element['#field_name'] : $element[$lang]['#field_name'];
+  $element_parents = isset($element['#field_parents']) ? $element['#field_parents'] : $element[$lang]['#field_parents'];
+  $field_info = field_info_field($field_name);
+  if ($element_parents) {
+    $input = drupal_array_get_nested_value($input, $element_parents);
+  }
+
+  $control_field_name = $condition['control_field'];
+  if (isset($input[$control_field_name])) {
+    $trigger_value_exist = field_conditional_state_trigger_value_in_field_value($input[$control_field_name][$lang], $condition['trigger_values'], $condition['condition_type']);
+    if ((($condition['state'] == 'visible' || $condition['state'] == 'enabled') && !$trigger_value_exist)
+      || ($condition['state'] == 'invisible' || $condition['state'] == 'disabled') && $trigger_value_exist) {
+        return 'not_available';
+    }
+    elseif ($condition['state'] == 'required' && $trigger_value_exist) {
+      $value = isset($element['fid']['#value']) ? $element['fid']['#value'] : $element['#value'];
+      // Single value - simple check, if value is empty return required.
+      if ($field_info['cardinality'] == 1) {
+        // Support for date field.
+        if ($element['#type'] == 'date_combo') {
+          $granularity = $field_info['settings']['granularity'];
+          $empty_date = field_conditional_state_check_date_value($granularity, $element['#value']['value']);
+          if ($empty_date) {
+            $element['value']['#required'] = TRUE;
+          }
+        }
+        if (empty($value)) {
+          return 'required';
+        }
+      }
+      // Multivalue field.
+      elseif ($field_info['cardinality'] > 1) {
+        if (is_array($value)) {
+          if (array_key_exists('_none', $value)) {
+            unset($element['#value']['_none']);
+          }
+          if (empty($value) && $element['#type'] != 'date_combo') {
+            return 'required';
+          }
+        }
+        elseif (empty($value)) {
+          static $values;
+          $values[$element['#field_name']][] = $value;
+          if ($field_info['cardinality'] == count($values[$element['#field_name']]) && empty($value)) {
+            foreach ($values[$element['#field_name']] as $value) {
+              if ($value) {
+                return FALSE;
+              }
+            }
+            return 'required';
+          }
+          // Multivalue file field.
+          elseif (empty($value) && isset($element['#value']['_weight']) && $element['#value']['_weight'] == 0) {
+            return 'required';
+          }
+        }
+      }
+      if ($element['#type'] == 'date_combo') {
+        static $values;
+        $granularity = $field_info['settings']['granularity'];
+        $values[$element['#field_name']][] = field_conditional_state_check_date_value($granularity, $element['#value']['value']);
+        if ($field_info['cardinality'] == count($values[$element['#field_name']])) {
+          foreach ($values[$element['#field_name']] as $empty_value) {
+            if (!$empty_value) {
+              return FALSE;
+            }
+          }
+          $element['value']['#required'] = TRUE;
+        }
+      }
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * @todo.
+ * check if one of the date parts (year, month, day, hour, minute or second) is empty
+ * @param $granularity
+ *   date format
+ * @param $values
+ *   submitted values.
+ */
+function field_conditional_state_check_date_value($granularity, $values) {
+  foreach ($granularity as $date_part) {
+    if (empty($values[$date_part])) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * @todo.
+ * search condition target values in field values
+ * @param $values
+ *   Current values for the field.
+ * @param $target_values
+ *   Target values for the condition.
+ */
+function field_conditional_state_trigger_value_in_field_value($values, $trigger_values, $condition_type) {
+  if ($condition_type == 'or') {
+    // If one of the submitted values is in trigger values, return true.
+    if (is_array($values)) {
+      foreach ($values as $delta => $value) {
+        foreach ($trigger_values as $trigger_value) {
+          if (is_array($value)) {
+            $search = array_search($trigger_value, $value);
+            if ($search) {
+              // Target value is set in field value - return TRUE.
+              return TRUE;
+            }
+          }
+          elseif ($value == $trigger_value) {
+            return TRUE;
+          }
+        }
+      }
+    }
+    else {
+      if (in_array($values, $trigger_values)) {
+        return TRUE;
+      }
+    }
+  }
+  // Condition type is and, all trigger values needs to be in submitted values.
+  else {
+    $return = TRUE;
+    foreach ($trigger_values as $key => $trigger_value) {
+      if (!in_array($trigger_value, $values)) {
+        $return = FALSE;
+      }
+    }
+    return $return;
+  }
+  return FALSE;
+}
+
+/**
+ * @todo.
+ * set states for target field
+ * @param $conditions
+ *   state conditions
+ */
+function field_conditional_state_set_field_state($conditions) {
+  $conditional_states = field_conditional_state_module_invoke();
+  $states = array();
+  foreach ($conditions as $condition_settings) {
+    $selector = '.conditional_state_control_field_' . $condition_settings['control_field'] . ' :input';
+    $condition_values = array();
+    if ($condition_settings['trigger_values']) {
+      foreach ($condition_settings['trigger_values'] as $c_value) {
+        $condition_values[] = $c_value;
+      }
+    }
+    else {
+      $condition_values = $condition_settings['trigger_values'];
+    }
+    $states[$condition_settings['state']][$selector] = array('value' => $condition_values, 'condition_type' => $condition_settings['condition_type']);
+  }
+  return $states;
+}
+
+/**
+ * @todo.
+ */
+function field_conditional_state_module_invoke() {
+  $conditional_states = array();
+  foreach (module_implements('field_state') as $module) {
+    $function = $module . '_field_state';
+    $conditional_states += $function();
+  }
+  return $conditional_states;
+}
+
+/**
+ * @todo.
+ * get all the conditions bundle types
+ * @return $bundle_types
+ */
+function field_conditional_state_get_bundle_types() {
+  $bundle_types = array();
+  $result = db_query("SELECT bundle FROM {field_conditional_state}");
+  foreach ($result as $res) {
+    $bundle_types[] = $res->bundle;
+  }
+  return $bundle_types;
+}
+
+/**
+ * @todo.
+ * check if field is control field
+ * @param $bundle
+ * @return $field_name
+ */
+function field_conditional_state_is_control_field($field_name, $bundle) {
+  $placeholders = array(':field_name' => $field_name, ':bundle' => $bundle);
+  $sql = db_query("SELECT COUNT(id) as count FROM {field_conditional_state} WHERE control_field = :field_name AND bundle = :bundle", $placeholders)->fetchObject();
+  if (isset($sql->count) && $sql->count > 0) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * @todo.
+ * get conditions for the field
+ * @param $field_name
+ * @param $bundle
+ * @return $conditions
+ */
+function field_conditional_state_get_field_conditions($field_name, $bundle) {
+  $conditions = array();
+  $result = db_query("SELECT * FROM {field_conditional_state} WHERE field_name = :field_name AND bundle = :bundle", array(':field_name' => $field_name, ':bundle' => $bundle));
+  foreach ($result as $res) {
+    $conditions["condition_$res->id"] = array(
+      'id' => $res->id,
+      'control_field' => $res->control_field,
+      'state' => $res->state,
+      'trigger_values' => unserialize($res->trigger_values),
+      'condition_type' => $res->condition_type,
+    );
+  }
+  return $conditions;
+}
+
+/**
+ * @todo.
+ * handler for 'disable', 'enable' states
+ */
+function field_conditional_state_handle_availability($state, $condition, $form_element, &$element) {
+  $field_info = field_info_instance($element['#entity_type'], $element['#field_name'], $element['#bundle']);
+  switch ($field_info['widget']['type']) {
+    case 'options_buttons':
+      foreach ($element['#options'] as $option_id => $option) {
+        $element[$option_id]['#states'][$state] = $condition;
+      }
+      break;
+
+    case 'file_generic':
+    case 'image_image';
+      $element['upload']['#states'][$state] = $condition;
+      $element['upload_button']['#states'][$state] = $condition;
+      $element['remove_button']['#states'][$state] = $condition;
+      break;
+
+    case 'date_popup':
+    case 'date_popup_repeat':
+    case 'date_select':
+    case 'date_select_repeat':
+    case 'date_text':
+    case 'date_text_repeat':
+      $form_element['#attributes'] = array('class' => array('date-conditional-state'), 'state' => $state);
+      $element['#states'][$state] = $condition;
+      break;
+
+    default:
+      $element['#states'][$state] = $condition;
+  }
+  return $form_element;
+}
+
+/**
+ * @todo.
+ * handler for 'required' state
+ */
+function field_conditional_state_handle_requirements($state, $condition, $form_element, &$element) {
+  $form_element['#states'][$state] = $condition;
+  return $form_element;
+}
+
+/**
+ * @todo.
+ * handler for 'visible', 'invisible' state
+ */
+function field_conditional_state_handle_visibility($state, $condition, $form_element, &$element) {
+  $form_element['#states'][$state] = $condition;
+  return $form_element;
+}

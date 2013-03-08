@@ -2839,3 +2839,28 @@ margin-top: 3px;
 #footer-inner .fusion-inline-menu ul li a{color:#666;}
 #boxes-box-datagov_footer_logo p{margin:0;}
 #block-block-4{margin:0;}
+
+.form-item.form-type-textfield.form-item-field-name-und-0-value {
+    float: left;
+    width: 200px;
+}
+.field-type-text.field-name-field-middle-name.field-widget-text-textfield.form-wrapper {
+    float: left;
+    margin-left: 20px;
+    width: 200px;
+}
+.field-type-text.field-name-field-last-name.field-widget-text-textfield.form-wrapper {
+    clear: right;
+    float: left;
+    margin-left: 20px;
+    width: 200px;
+}
+.field-type-list-text.field-name-field-organization-type.field-widget-options-select.form-wrapper {
+    clear: both;
+}
+fieldset.captcha{
+    clear: both;
+}
+.field-type-text.field-name-field-organization.field-widget-text-textfield.form-wrapper {
+    clear: both;
+}

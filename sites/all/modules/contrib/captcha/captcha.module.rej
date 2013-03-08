@@ -1,0 +1,52 @@
+***************
+*** 348,353 ****
+        // Get placement in form and insert in form.
+        $captcha_placement = _captcha_get_captcha_placement($form_id, $form);
+        _captcha_insert_captcha_element($form, $captcha_placement, $captcha_element);
+      }
+    }
+    else if (
+--- 358,366 ----
+        // Get placement in form and insert in form.
+        $captcha_placement = _captcha_get_captcha_placement($form_id, $form);
+        _captcha_insert_captcha_element($form, $captcha_placement, $captcha_element);
++ 
++       // Add #submit functions to invalidate captcha
++       $form['#submit'][] = 'captcha_submit_invalidate_session';
+      }
+    }
+    else if (
+***************
+*** 456,462 ****
+   * @return TRUE when equal (ignoring spaces), FALSE otherwise.
+   */
+  function captcha_validate_ignore_spaces($solution, $response) {
+-   return preg_replace('/\s/', '', $solution) === preg_replace('/\s/', '', $response);
+  }
+  
+  /**
+--- 483,489 ----
+   * @return TRUE when equal (ignoring spaces), FALSE otherwise.
+   */
+  function captcha_validate_ignore_spaces($solution, $response) {
++   return preg_replace('/\s/', '', $solution) == preg_replace('/\s/', '', $response);
+  }
+  
+  /**
+***************
+*** 466,472 ****
+   * @return TRUE when equal (ignoring spaces), FALSE otherwise.
+   */
+  function captcha_validate_case_insensitive_ignore_spaces($solution, $response) {
+-   return preg_replace('/\s/', '', drupal_strtolower($solution)) === preg_replace('/\s/', '', drupal_strtolower($response));
+  }
+  
+  /**
+--- 493,499 ----
+   * @return TRUE when equal (ignoring spaces), FALSE otherwise.
+   */
+  function captcha_validate_case_insensitive_ignore_spaces($solution, $response) {
++   return preg_replace('/\s/', '', drupal_strtolower($solution)) == preg_replace('/\s/', '', drupal_strtolower($response));
+  }
+  
+  /**

@@ -1,0 +1,12 @@
+name = Field Conditional State
+description = Set form field states attributes (visible, invisible, enabled, disabled, required) based on the values selected in other form fields.
+core = 7.x
+
+dependencies[] = options
+
+; Information added by drupal.org packaging script on 2012-05-21
+version = "7.x-1.0"
+core = "7.x"
+project = "field-conditional-state"
+datestamp = "1337586058"
+
