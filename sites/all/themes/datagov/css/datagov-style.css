@@ -2858,3 +2858,6 @@ margin-top: 3px;
 .field-type-list-text.field-name-field-organization-type.field-widget-options-select.form-wrapper {
     clear: both;
 }
+fieldset.captcha{
+    clear: both;
+}
