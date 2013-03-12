@@ -2864,3 +2864,4 @@ fieldset.captcha{
 .field-type-text.field-name-field-organization.field-widget-text-textfield.form-wrapper {
     clear: both;
 }
+#edit-actions #edit-submit{clear:both;}
