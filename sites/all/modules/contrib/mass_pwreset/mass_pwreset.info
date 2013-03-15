@@ -1,0 +1,36 @@
+name = Mass Password Reset
+description = Reset all user accounts!
+core = 7.x
+
+; PHP version requirement (optional)
+; php = 5.2
+
+; Package name (see http://drupal.org/node/542202 for a list of names)
+; package = example
+
+; Module style sheets and scripts
+; stylesheets[all][] = mass_pwreset.css
+; scripts[] = mass_pwreset.js
+
+; Loadable code files
+; files[] = mass_pwreset.admin.inc
+; files[] = mass_pwreset.test
+
+; Module dependencies
+; dependencies[] = module_name
+; dependencies[] = module_name (1.0)
+; dependencies[] = module_name (>=1.0)
+; dependencies[] = module_name (1.x)
+
+; Configuration page
+configure = admin/people/mass-pwreset
+
+; For further information about configuration options, see
+; - http://drupal.org/node/542202
+
+; Information added by drupal.org packaging script on 2012-11-29
+version = "7.x-1.0"
+core = "7.x"
+project = "mass_pwreset"
+datestamp = "1354216025"
+

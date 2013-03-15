@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * @file
+ * mass_pwreset.install
+ *
+ * Install, update and uninstall functions for the mass_pwreset module.
+ */
