@@ -2864,3 +2864,7 @@ fieldset.captcha{
 .field-type-text.field-name-field-organization.field-widget-text-textfield.form-wrapper {
     clear: both;
 }
+.form-wrapper#edit-actions{clear:both;}
+
+.field-name-field-country{display: none;}
+.field-name-field-suffix{visibility: hidden;}

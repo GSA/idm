@@ -80,6 +80,24 @@
                 });
             });
         });
+        fixDropdown = function () { jQuery(function ($)
+        {
+
+            $("#edit-field-organization-type-und").live("change", function() {
+                var one = $(this).val();
+                if(one ==="State Government") {
+                    $("#edit-field-organization").css("display","block");
+                    $("#edit-field-organization-affiliation").css("display","block");
+                }
+                if(one !="Federal Government" && one != "_none") {
+                    $("#edit-field-organization").css("display","block");
+                }
+            });
+
+        });
+            setTimeout('fixDropdown()', 1000);
+        }
+        fixDropdown();
     </script>
     <?php $uid= $user->uid;  if ($uid==0) { ?>
     <style type="text/css">

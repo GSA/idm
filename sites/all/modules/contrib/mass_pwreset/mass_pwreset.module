@@ -1,0 +1,109 @@
+<?php
+
+/**
+ * @file
+ * Reset all user accounts!
+ */
+
+/**
+ * Implements hook_help().
+ */
+function mass_pwreset_help($path, $arg) {
+  switch ($path) {
+    case 'admin/people/mass-pwreset':
+      return '<p><strong>' . t('Use this form with caution.') . '</strong></p>' . '<p>' . t('This form will reset the passwords of all users except the administrative superuser id 1. You can optionally reset the administrative superuser id 1. Once passwords have been reset, users will optionally receive emails using the Drupal password recovery email. The password recovery email content can be edited at the <a href="@url">account settings configuration page</a>.', array('@url' => url("admin/config/people/accounts"))) . '</p>';
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function mass_pwreset_menu() {
+  $items['admin/people/mass-pwreset'] = array(
+    'title' => 'Mass Password Reset',
+    'description' => 'Perform mass password reset functions.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('mass_pwreset_form'),
+    'access arguments' => array('administer users'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'mass_pwreset.admin.inc',
+    'weight' => 10,
+  );
+
+  return $items;
+}
+
+/**
+ * _mass_pwreset_generate_password
+ *   Modified version of Drupal's user_password() for generating passwords
+ *   which will never be sent to anyone. The default length of the password has
+ *   been changed to 12 characters to increse entropy. Includes two sets of
+ *   password requirements (standard and admin).
+ * @param  integer $length
+ *   Length to generate the password
+ * @param  bool $admin
+ *   (optional) TRUE if password should be generated from more stringent
+ *   password requirements. Defaults to FALSE. Mimimum password length shifts
+ *   to 20 if TRUE, regardless of the password length passed into $length.
+ * @return string $pass
+ *         Generated password
+ */
+function _mass_pwreset_generate_password($length = 8, $admin = FALSE) {
+  // Set password requirements for standard or admin based on $admin value.
+  if ($admin) {
+    // Enforce minimum password length.
+    if ($length < 12) {
+      $length = 12;
+    }
+
+    // This veriable contains the regex to enforce the following password requirements:
+    // First and last characters cannot be digits (0-9)
+    // Must contain two digit characters (0-9)
+    // Must contain one lower case character (a-z)
+    // Must contain one upper case character (A-Z)
+    // Must contain three special characters - ()`~!@#$%^&*-+=|\{}[]:;"'<>,.?/
+    // Minimum length is 12 characters
+    // Maximum length is 128 characters
+    $pass_requirements = '_^(?=.*\d.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[()`~!@#$%^\&*\-+=\|\\{}[\]:;"\'<>,.?/].*[()`~!@#$%^\&*\-+=\|\\{}[\]:;"\'<>,.?/].*[()`~!@#$%^\&*\-+=\|\\{}[\]:;"\'<>,.?/])[\D]{1}[\s0-9a-zA-Z()`~!@#$%^\&*\-+=\|\\{}[\]:;"\'<>,.?/]{10,126}[\D]{1}$_';
+  }
+  else {
+    // Enforce minimum password length.
+    if ($length < 8) {
+      $length = 8;
+    }
+
+    // This veriable contains the regex to enforce the following password requirements:
+    // First and last characters cannot be digits (0-9)
+    // Must contain one digit character (0-9)
+    // Must contain one lower case character (a-z)
+    // Must contain one upper case character (A-Z)
+    // Must contain one special character - ()`~!@#$%^&*-+=|\{}[]:;"'<>,.?/
+    // Minimum length is 8 characters
+    // Maximum length is 128 characters
+    $pass_requirements = '_^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[()`~!@#$%^\&*\-+=\|\\{}[\]:;"\'<>,.?/])[\D]{1}[\s0-9a-zA-Z()`~!@#$%^\&*\-+=\|\\{}[\]:;"\'<>,.?/]{6,126}[\D]{1}$_';
+  }
+
+  // This variable contains the list of allowable characters for the password.
+  $allowable_characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHJKLMNOPQRSTUVWXYZ0123456789()`~!@#$%^&*-+=|\{}[]:;"\'<>,.?/';
+
+  // Zero-based count of characters in the allowable list.
+  $len = strlen($allowable_characters) - 1;
+
+  // Declare the password as a blank string.
+  $pass = '';
+
+  // Generate passwords until password requiments are met.
+  while (preg_match($pass_requirements, $pass) == 0) {
+    // Declare the password as a blank string.
+    $pass = '';
+    // Loop the number of times specified by $length.
+    for ($i = 0; $i < $length; $i++) {
+
+      // Each iteration, pick a random character from the allowable string and
+      // append it to the password:
+      $pass .= $allowable_characters[mt_rand(0, $len)];
+    }
+  }
+
+  return $pass;
+}
