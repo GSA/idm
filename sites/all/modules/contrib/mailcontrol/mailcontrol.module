@@ -1,0 +1,109 @@
+<?php
+
+/**
+ * @file
+ * This is the main file of the module.
+ *
+ * It contains two hook implementations only:
+ *   - one is hook_help() where we provide information about the module
+ *   - the other does a form alteration to implement the modules purpose
+ */
+
+/**
+ * Implements hook_help().
+ */
+function mailcontrol_help($path, $arg) {
+  switch ($path) {
+    // Main module help for the mailcontrol module.
+    case 'admin/help#mailcontrol':
+      return '<p>' . t('Have 100% control over the default mails sent by Drupal 7 out of the box.</br>
+      This small module extends original Drupal 7 account settings page with the ability to turn ON/OFF all standard mails.</br>
+      By default Drupal 7 provides no option to disable welcome emails, account cancellation confirmation or password reset.</br>
+      This can be useful when you don\'t want to send those emails, or you are sending them through some external services or just for development purposes, etc.</br>
+      You can access these settings under <a href="@conf_url">admin/config/people/accounts</a>.</br>
+      The module provide only interface modifications. The underlying functionality is already there by default in Drupal 7.',
+      array('@conf_url' => url('admin/config/people/accounts'))) . '</p>';
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * add the enable/disable option to all standard drupal mails
+ */
+function mailcontrol_form_user_admin_settings_alter(&$form, &$form_state, $form_id) {
+  // Welcome (new user created by administrator).
+  $form['email_admin_created']['user_mail_register_admin_created_notify'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Notify new user when account created by admin.'),
+    '#default_value' => variable_get('user_mail_register_admin_created_notify', 1),
+    '#weight' => -10,
+  );
+
+  $form['email_admin_created']['user_mail_register_admin_created_subject']['#states']
+    = $form['email_admin_created']['user_mail_register_admin_created_body']['#states'] = array(
+      'invisible' => array(
+        'input[name="user_mail_register_admin_created_notify"]' => array('checked' => FALSE),
+      ),
+    );
+
+  // Welcome (awaiting approval).
+  $form['email_pending_approval']['user_mail_register_pending_approval_notify'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Notify new user when account was approved.'),
+    '#default_value' => variable_get('user_mail_register_pending_approval_notify', 1),
+    '#weight' => -10,
+  );
+
+  $form['email_pending_approval']['user_mail_register_pending_approval_subject']['#states']
+    = $form['email_pending_approval']['user_mail_register_pending_approval_body']['#states'] = array(
+      'invisible' => array(
+        'input[name="user_mail_register_pending_approval_notify"]' => array('checked' => FALSE),
+      ),
+    );
+
+  // Welcome (no approval required).
+  $form['email_no_approval_required']['user_mail_register_no_approval_required_notify'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Notify new user when account created.'),
+    '#default_value' => variable_get('user_mail_register_no_approval_required_notify', 1),
+    '#weight' => -10,
+  );
+
+  $form['email_no_approval_required']['user_mail_register_no_approval_required_subject']['#states']
+    = $form['email_no_approval_required']['user_mail_register_no_approval_required_body']['#states'] = array(
+      'invisible' => array(
+        'input[name="user_mail_register_no_approval_required_notify"]' => array('checked' => FALSE),
+      ),
+    );
+
+  // Password recovery.
+  $form['email_password_reset']['user_mail_password_reset_notify'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Notify user after password reset.'),
+    '#default_value' => variable_get('user_mail_password_reset_notify', 1),
+    '#weight' => -10,
+  );
+
+  $form['email_password_reset']['user_mail_password_reset_subject']['#states']
+    = $form['email_password_reset']['user_mail_password_reset_body']['#states'] = array(
+      'invisible' => array(
+        'input[name="user_mail_password_reset_notify"]' => array('checked' => FALSE),
+      ),
+    );
+
+  // Account cancellation confirmation.
+  $form['email_cancel_confirm']['user_mail_cancel_confirm_notify'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Notify user when account is being cancelled.'),
+    '#default_value' => variable_get('user_mail_cancel_confirm_notify', 1),
+    '#weight' => -10,
+  );
+
+  $form['email_cancel_confirm']['user_mail_cancel_confirm_subject']['#states']
+    = $form['email_cancel_confirm']['user_mail_cancel_confirm_body']['#states'] = array(
+      'invisible' => array(
+        'input[name="user_mail_cancel_confirm_notify"]' => array('checked' => FALSE),
+      ),
+    );
+}
