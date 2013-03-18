@@ -2868,3 +2868,6 @@ fieldset.captcha{
 
 .field-name-field-country{display: none;}
 .field-name-field-suffix{visibility: hidden;}
+.form-item.form-type-checkbox.form-item-field-administrator-approved-und {
+    display: none;
+}
