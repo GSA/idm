@@ -1,0 +1,54 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the term_permissions module.
+ *
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function term_permissions_schema() {
+  $schema = array();
+
+  $schema['term_permissions_user'] = array(
+    'fields' => array(
+      'tid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array(
+      'tid',
+      'uid',
+    ),
+  );
+
+  $schema['term_permissions_role'] = array(
+    'fields' => array(
+      'tid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'rid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array(
+      'tid',
+      'rid',
+    ),
+  );
+
+  return $schema;
+}
+
