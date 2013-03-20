@@ -71,7 +71,11 @@
             setTimeout('fixDropdown()', 1000);
         }
         fixDropdown();
-    </script>
+
+
+     </script>
+
+
     <?php $uid= $user->uid;  if ($uid==0) { ?>
     <style type="text/css">
     .node-type-forum .comment-reply, .node-type-forum .comment-add {display: none !important;}
@@ -201,6 +205,18 @@ _tag.dcsCollect();
     jQuery(function ($) {
         $('form.webform-client-form *:input[type!=hidden]:first').focus();
     });
+    document.getElementById("edit-field-administrator-approved-und").checked = false;
+</script>
+<script type="text/javascript">
+    jQuery(document).ready(function($) {
+        $(":checkbox:checked").each(function () {
+
+            this.click();
+        });
+        $('input[type=checkbox]').attr('checked',false);
+        $("#edit-field-administrator-approved-und").attr("checked","");
+
+});
     document.getElementById("edit-field-administrator-approved-und").checked = false;
 </script>
 <script type="text/javascript" src="<?php print base_path();?>sites/all/themes/datagov/js/google-analytics.js"></script>

@@ -1,0 +1,315 @@
+<?php
+/**
+ * @file
+ * Allows access to terms in a vocabulary to be limited by user or role.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function term_permissions_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#term_permissions':
+      $output = '<p>' . t('This module allows taxonomy administrators the
+        ability to restrict setting individual terms on nodes by user or role.
+        If a user is unable to set any terms for a required vocabulary, they are
+        blocked from adding or editing content with that vocabulary.') . '</p>';
+      $output .= '<p>' . t('To add permissions for a term, go to Administer >>
+        Content Management >> Taxonomy, and add or edit a term. If the
+        permissions are left blank, the term is available to all users.') . '</p>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function term_permissions_menu() {
+  $items = array();
+  $items['term-permissions/autocomplete'] = array(
+    'title' => '',
+    'page callback' => 'term_permissions_autocomplete_multiple',
+    'access arguments' => array('access user profiles'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_form_alter().
+ *
+ * @param array $form
+ *   The form to alter.
+ * @param array $form_state
+ *   The form state of the current form.
+ * @param array $form_id
+ *   The form id of the current form.
+ */
+function term_permissions_form_alter(&$form, $form_state, $form_id) {
+  // This is the add / edit term form from the taxonomy page.
+  if ($form_id == 'taxonomy_form_term') {
+    // Normally the term is an array, but when deleting terms it becomes an
+    // object. So, we cast it to an object so we can consistently reference it.
+    $term = (object)$form['#term'];
+
+    $form['access'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Permissions'),
+      '#description' => t('To limit selection of this term by user or roles,
+         add users or roles to the following lists. Leave empty to allow
+         selection by all users.'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#attributes' => array('id' => 'fieldset_term_access'),
+      '#weight' => -5,
+      '#tree' => TRUE,
+    );
+    // Pull in any stored users in the database.
+    $allowed_users = array();
+    if (!empty($form['tid']['#value'])) {
+      $result = db_select('term_permissions_user')
+        ->fields('term_permissions_user')
+        ->condition('tid', $term->tid)
+        ->execute();
+
+      foreach ($result as $row) {
+        $u = user_load($row->uid);
+        $allowed_users[] = $u->name;
+      }
+    }
+    $allowed_users = drupal_implode_tags($allowed_users);
+    // Note that the autocomplete widget will only enable for users with the
+    // 'access profiles' permission. Other users will have to specify the name
+    // manually.
+    $form['access']['user'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Allowed users'),
+      '#description' => t('Enter a comma-seperated list of user names to give
+        them permission to use this term.'),
+      '#default_value' => $allowed_users,
+      '#size' => 60,
+      '#autocomplete_path' => 'term-permissions/autocomplete',
+      '#weight' => -10,
+    );
+
+    $allowed_roles = array();
+    if (!empty($form['tid']['#value'])) {
+      $result = db_select('term_permissions_role')
+        ->fields('term_permissions_role')
+        ->condition('tid', $term->tid)
+        ->execute();
+
+      foreach ($result as $row) {
+        $allowed_roles[] = $row->rid;
+      }
+    }
+
+    // Now, lets do the Roles table.
+    $form['access']['role'] = array(
+      '#type' => 'checkboxes',
+      '#title' => t('Allowed roles'),
+      '#description' => t('Select a role to allow all members of that role access to this term.'),
+      '#default_value' => $allowed_roles,
+      '#options' => user_roles(),
+      '#multiple' => FALSE,
+      '#weight' => 5,
+    );
+
+    $form['#validate'][] = 'term_permissions_validate';
+    $form['#submit'][] = 'term_permissions_submit';
+  }
+
+  // This is the node add / edit form. If a different selector is used from
+  // another contributed module, we do nothing so as to not break the form.
+  if ((isset($form['type']) && isset($form['#node']) && (!variable_get('taxonomy_override_selector', FALSE)) && $form['type']['#value'] . '_node_form' == $form_id ) ||
+      (isset($form['#entity_type']) && isset($form['#bundle']))) {
+    $types = array('taxonomy_term_reference'); // Field types we are looking for
+
+    foreach (element_children($form) as $field_name) {
+      if (!$field_info = field_info_field($field_name))
+        continue;
+      if (!in_array('#language', $form[$field_name]))
+         continue;
+
+      $options = &$form[$field_name][$form[$field_name]['#language']]['#options'];
+      if (!in_array($field_info['type'], $types) || !isset($options)) {
+        continue;
+      }
+
+      foreach ($options as $tid => $name) {
+        if ($tid == "_none") {
+          continue;
+        }
+
+        // Now we have the term ID, check to see if the current user has
+        // access to the term.
+        global $user;
+        if (!term_permissions_allowed($tid, $user)) {
+          unset($options[$tid]);
+        }
+        // If the user doesn't have access to any of the terms in the
+        // vocabulary, remove the form item entirely.
+        if (count($options) <= 1) {
+          if ($vocabulary['#required']) {
+            drupal_set_message(t("Your account doesn't have permission to
+                  use any of the terms in the %vocabulary vocabulary. Your
+                  account must be given permission to use at least one term in
+                  the %vocabulary vocabulary to be able to add or edit the
+                  %content-type content type.",
+                  array('%vocabulary' => $vocabulary['#title'],
+                    '%content-type' => node_get_types('name',
+                      $form['type']['#value']))), 'warning');
+            watchdog('term_permissions', '%user was blocked from accessing
+                the %content-type form as they do not have permission to use
+                any terms in the <a href="@vocabulary-url">%vocabulary</a>
+                vocabulary.', array('%user' => isset($user->name) ? $user->name : variable_get('anonymous', 'Anonymous'),
+                  '%content-type' => node_get_types('name', $form['type']['#value']),
+                  '@vocabulary-url' => url('admin/content/taxonomy/' . $vid),
+                  '%vocabulary' => $vocabulary['#title']),
+                WATCHDOG_WARNING, l(t('edit vocabulary'),
+                  'admin/content/taxonomy/' . $vid));
+            drupal_access_denied();
+            exit();
+          }
+          unset($form[$field_name]);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Validation function to ensure that the selected user exists.
+ *
+ * @param $form
+ *   The current form array.
+ * @param $form_state
+ *   The state of the current form.
+ */
+function term_permissions_validate($form, &$form_state) {
+  if (!empty($form_state['values']['access']['user'])) {
+    $allowed_users = drupal_explode_tags($form_state['values']['access']['user']);
+    foreach ($allowed_users as $name) {
+      if (!(array_shift(user_load_multiple(array(), array('name' => $name))))) {
+        form_set_error('search_user', t('The user %name does not exist.',
+                array('%user' => $name)));
+      }
+    }
+  }
+}
+
+/**
+ * Additional submit function for the term form. This occurs when a term is
+ * added or updated.
+ *
+ * @param $form
+ *   The current form array.
+ * @param $form_state
+ *   The state of the current form.
+ */
+function term_permissions_submit($form, &$form_state) {
+  // For each user, save the term ID and the user ID.
+  db_delete('term_permissions_user')
+  ->condition('tid', $form_state['values']['tid'])
+  ->execute();
+  if (!empty($form_state['values']['access']['user']) && $form_state['values']['op']=='Save') {
+    $allowed_users = drupal_explode_tags($form_state['values']['access']['user']);
+    foreach ($allowed_users as $name) {
+      $u = array_shift(user_load_multiple(array(), array('name' => $name)));
+      $id = db_insert('term_permissions_user')
+  ->fields(array(
+        'tid' => $form_state['values']['tid'],
+        'uid' => $u->uid,
+      ))
+  ->execute();
+    }
+  }
+
+  // For each role, save the term ID and the role ID.
+  db_delete('term_permissions_role')
+  ->condition('tid', $form_state['values']['tid'])
+  ->execute();
+  if (!empty($form_state['values']['access']['role']) && $form_state['values']['op']=='Save') {
+    foreach (array_keys(array_filter($form_state['values']['access']['role'])) as $rid) {
+      $id = db_insert('term_permissions_role')
+        ->fields(array(
+          'tid' => $form_state['values']['tid'],
+          'rid' => $rid,
+        ))
+      ->execute();
+    }
+  }
+}
+
+/**
+ * Given a term ID, determine if a user has access to that term. UID 1 is
+ * always allowed access. If no permissions are set on the term, allow
+ * access by default.
+ *
+ * @param $tid
+ *   The term ID to look up.
+ * @param $user
+ *   The user to determine if it has access to the term ID.
+ * @return bool
+ *   TRUE if the user has access to the term, otherwise FALSE.
+ */
+function term_permissions_allowed($tid, $user) {
+  if ($user->uid == 1) {
+    return TRUE;
+  }
+
+  // Are permissions enabled on this term?
+  if (!(db_query("SELECT COUNT(1) FROM {term_permissions_user} WHERE tid = :tid",
+          array(':tid' => $tid))->fetchField() ||
+        db_query("SELECT COUNT(1) FROM {term_permissions_role} WHERE tid = :tid",
+          array(':tid' => $tid))->fetchField())) {
+          return TRUE;
+  }
+  // We need to convert user->roles to be useful for us.
+  $users_uid = implode(', ', array_keys($user->roles));
+  // Permissions are enabled, check to see if this user or one of their roles
+  // is allowed
+
+  $user_roles = array_keys($user->roles);
+
+  $i = 0;
+
+  while (isset($user_roles[$i])) {
+
+  if (db_query("SELECT uid FROM {term_permissions_user} WHERE tid = :tid AND uid = :uid",
+  array(':tid' => $tid, ':uid' => $user->uid))->fetchField() ||
+      db_query("SELECT rid FROM {term_permissions_role} WHERE tid = :tid AND rid IN (:user_roles)",
+  array(':tid' => $tid, ':user_roles' => $user_roles[$i]))->fetchField()) {
+    return TRUE;
+  }
+
+  $i++;
+
+  }
+
+  return FALSE;
+}
+
+/**
+ * Returns Json array for Taxonomy Term Permissions autocomplete fields. Supports
+ * multiple entries separated by a comma.
+ */
+function term_permissions_autocomplete_multiple($string) {
+  // The user enters a comma-separated list of users.
+  // We only autocomplete the last user.
+  $array = drupal_explode_tags($string);
+
+  // Fetch last user.
+  $last_string = trim(array_pop($array));
+
+  $matches = array();
+  $result = db_select('users')->fields('users', array('name'))->condition('name',
+            db_like($last_string) . '%', 'LIKE')->range(0, 10)->execute();
+
+  $prefix = count($array) ? implode(', ', $array) . ', ' : '';
+
+  foreach ($result as $user) {
+    $matches[$prefix . $user->name] = check_plain($user->name);
+  }
+  exit(drupal_json_output($matches));
+}
