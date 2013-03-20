@@ -52,34 +52,7 @@
   <?php endif; ?>
   <?php print $scripts; ?>
     <script type="text/javascript">
-        jQuery(function ($) {
 
-                    $ul  = $("#menu-1568-1 ul");
-
-
-            $ul.css('float','left');
-            $ul.addClass("sf-hidden clist1")
-
-            var size = $('.clist1 li').size();
-
-            var csize2= Math.ceil(size/2);
-
-
-
-            var col_max_item = csize2; //Max Items per column
-            var col_width = $('#menu-1568-1 ul li').css('width').replace("px", "");  //Pixels, get width from CSS
-            var col_height = $('#menu-1568-1 ul li').css('height').replace("px", ""); //Pixels, get height from CSS
-
-            $('#menu-1568-1 ul').each(function() {
-                $(this).find('li').each(function(index){
-                    column = parseInt(index/col_max_item);
-                    $(this).css('margin-left', column * col_width + 'px')
-                    if(column > 0 && (index / col_max_item) == column) {
-                        $(this).css('margin-top', (col_max_item * col_height * -1)  + 'px').addClass('col_'+column);
-                    }
-                });
-            });
-        });
         fixDropdown = function () { jQuery(function ($)
         {
 
@@ -228,6 +201,7 @@ _tag.dcsCollect();
     jQuery(function ($) {
         $('form.webform-client-form *:input[type!=hidden]:first').focus();
     });
+    document.getElementById("edit-field-administrator-approved-und").checked = false;
 </script>
 <script type="text/javascript" src="<?php print base_path();?>sites/all/themes/datagov/js/google-analytics.js"></script>
 </body>
