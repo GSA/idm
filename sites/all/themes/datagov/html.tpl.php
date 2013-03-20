@@ -53,18 +53,38 @@
   <?php print $scripts; ?>
     <script type="text/javascript">
 
+
         fixDropdown = function () { jQuery(function ($)
         {
 
             $("#edit-field-organization-type-und").live("change", function() {
                 var one = $(this).val();
                 if(one ==="State Government") {
-                    $("#edit-field-organization").css("display","block");
+                    $("#edit-field-state-organization").css("display","block");
                     $("#edit-field-organization-affiliation").css("display","block");
                 }
-                if(one !="Federal Government" && one != "_none") {
-                    $("#edit-field-organization").css("display","block");
+                if(one ==="Local Government") {
+                    $("#edit-field-local-organization").css("display","block");
+
                 }
+                if(one ==="Non-Profit") {
+                    $("#edit-field-organization").css("display","block");
+
+                }
+                if(one ==="Tribal") {
+                    $("#edit-field-tribal-organization").css("display","block");
+
+                }
+                if(one ==="University") {
+                    $("#edit-field-university-organization").css("display","block");
+
+                }
+                if(one ==="Other") {
+                    $("#edit-field-other-organization").css("display","block");
+
+                }
+
+
             });
 
         });
@@ -205,7 +225,15 @@ _tag.dcsCollect();
     jQuery(function ($) {
         $('form.webform-client-form *:input[type!=hidden]:first').focus();
     });
+    jQuery(function ($){
+
+        var value = $('#edit-field-organization-type-und').val();
+        if(value ==="_none") {$("#edit-field-organization").css("display","none");}
+    });
     document.getElementById("edit-field-administrator-approved-und").checked = false;
+
+
+
 </script>
 
 <script type="text/javascript" src="<?php print base_path();?>sites/all/themes/datagov/js/google-analytics.js"></script>
