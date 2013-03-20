@@ -56,9 +56,15 @@
 
         fixDropdown = function () { jQuery(function ($)
         {
+           var value=$("#edit-field-organization-type-und").val();
+            if(value  ==="_none") {
+                $("#edit-field-organization").css("display","none");
+
+            }
 
             $("#edit-field-organization-type-und").live("change", function() {
                 var one = $(this).val();
+
                 if(one ==="State Government") {
                     $("#edit-field-state-organization").css("display","block");
                     $("#edit-field-organization-affiliation").css("display","block");
