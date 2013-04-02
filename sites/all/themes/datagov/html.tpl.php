@@ -74,7 +74,7 @@
 
                 }
                 if(one ==="Non-Profit") {
-                    $("#edit-field-organization").css("display","block");
+                    $("#edit-field-non-profit-organization").css("display","block");
 
                 }
                 if(one ==="Tribal") {
@@ -231,12 +231,8 @@ _tag.dcsCollect();
     jQuery(function ($) {
         $('form.webform-client-form *:input[type!=hidden]:first').focus();
     });
-    jQuery(function ($){
 
-        var value = $('#edit-field-organization-type-und').val();
-        if(value ==="_none") {$("#edit-field-organization").css("display","none");}
-    });
-    document.getElementById("edit-field-administrator-approved-und").checked = false;
+ document.getElementById("edit-field-administrator-approved-und").checked = false;
 
 
 
