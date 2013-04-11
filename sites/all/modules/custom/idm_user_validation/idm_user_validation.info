@@ -1,0 +1,4 @@
+name = User Form Validation
+description = User validation. TODO-Add desc.
+package = IDM
+core = 7.x
