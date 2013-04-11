@@ -1,0 +1,47 @@
+<?php
+/**
+ * Created by JetBrains PhpStorm.
+ * User: kapil.bulchandani
+ * Date: 4/11/13
+ * Time: 3:04 PM
+ * To change this template use File | Settings | File Templates.
+ */
+
+/**
+ * Implements hook_form_alter
+ * @param $form
+ * @param $form_state
+ * @param $form_id
+*/
+function idm_user_validation_form_user_profile_form_alter(&$form, &$form_state, $form_id){
+
+    $form['#validate'][] = 'idm_user_validation_validate_register_form';
+}
+
+function idm_user_validation_validate_register_form(&$form, &$form_state) {
+    $tname = $form_state['values']['field_organization'];
+
+    $name= $tname['und'][0]['value'];
+    $validate=taxonomy_get_term_by_name($name);
+
+    if(!empty($validate))
+    {
+
+        form_set_error('field_organization', t('Organization already exists please select it from the list'));
+    }
+    $uvalue=$form_state['values']['field_unique_id']['und'][0]['value'];
+    dsm($uvalue);
+    $result= db_select('field_data_field_unique_id', 'a')
+            ->fields('a', array('field_unique_id_value'))
+            ->condition('entity_type', 'taxonomy_term','=')
+            ->condition('field_unique_id_value', $uvalue, '=')
+            ->execute()
+            ->fetchAssoc();
+
+    if ($result){
+
+        form_set_error('field_unique_id', t('Unique ID already exists'));
+    }
+
+}
+
