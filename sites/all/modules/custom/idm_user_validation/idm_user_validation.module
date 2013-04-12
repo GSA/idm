@@ -29,10 +29,10 @@ function idm_user_validation_validate_register_form(&$form, &$form_state) {
 
         form_set_error('field_organization', t('Organization already exists please select it from the list'));
     }
-     $uvalues=$form_state['values']['field_unique_id'];
+    $uvalues=$form_state['values']['field_unique_id'];
     if(!empty($uvalues)){
     $uvalue=$form_state['values']['field_unique_id']['und'][0]['value'];
-    }
+
 
     $result= db_select('field_data_field_unique_id', 'a')
             ->fields('a', array('field_unique_id_value'))
@@ -41,12 +41,12 @@ function idm_user_validation_validate_register_form(&$form, &$form_state) {
             ->execute()
             ->fetchAssoc();
 
-   if (!empty($name)){
+    if (!empty($name)){
     if ($result){
 
         form_set_error('field_organization', t('Unique ID already exists'));
     }
     }
-
+    }
 }
 
