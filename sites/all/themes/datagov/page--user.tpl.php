@@ -20,9 +20,9 @@
             <div id="main" class="main region <?php print $grid_width; ?>">
                 <div id="main-inner" class="main-inner inner clearfix">
                     <?php print render($title_prefix); ?>
-
-                    <h1 class="title gutter">User Account</h1>
-
+                    <?php if ($title ): ?>
+                    <h1 class="title gutter"><?php print $title; ?></h1>
+                    <?php endif; ?>
                     <?php print render($title_suffix); ?>
                     <?php print render($page['sidebar_first']); ?>
 
