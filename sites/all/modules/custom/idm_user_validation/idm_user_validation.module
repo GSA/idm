@@ -40,7 +40,7 @@ function idm_user_validation_validate_register_form(&$form, &$form_state) {
 
     if ($result){
 
-        form_set_error('field_unique_id', t('Unique ID already exists'));
+        form_set_error('field_organization', t('Unique ID already exists'));
     }
 
 }
