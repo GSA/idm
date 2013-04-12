@@ -38,7 +38,7 @@ function idm_user_validation_validate_register_form(&$form, &$form_state) {
             ->execute()
             ->fetchAssoc();
 
-   if ($name!=""){
+   if (!empty($name)){
     if ($result){
 
         form_set_error('field_organization', t('Unique ID already exists'));
