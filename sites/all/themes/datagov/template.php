@@ -455,8 +455,12 @@ function datagov_preprocess_username(&$vars) {
 }
 
 function datagov_form_views_exposed_form_alter(&$form, $form_state) {
-  // sort out the multiselect options
+  // sort out the multiselect options  
   foreach($form_state['view']->filter as $filter) {
-    if($fid = $filter->options['expose']['identifier']) asort($form[$fid]['#options']);
+    $fid = $filter->options['expose']['identifier'];
+	
+    if($fid && isset($form[$fid]['#options'])) asort($form[$fid]['#options']);
+	
+
   }
 }
