@@ -3061,3 +3061,100 @@ a.logo-brand {
 .marker, .form-required {
     color: #AA1144;
 }
+.dropdown-menu {
+    background-clip: padding-box;
+    background-color: #FFFFFF;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.176);
+    display: none;
+    float: left;
+    font-size: 16px;
+    left: 0;
+    list-style: none outside none;
+    margin: 2px 0 0;
+    min-width: 160px;
+    padding: 5px 0;
+    position: absolute;
+    top: 100%;
+    z-index: 1000;
+}
+.dropdown-menu > li > a {
+    clear: both;
+    color: #333333;
+    display: block;
+    font-weight: normal;
+    line-height: 1.42857;
+    padding: 3px 20px;
+    white-space: nowrap;
+}
+.dropdown-menu > li > a:hover, .dropdown-menu > li > a:focus {
+    background-color: #F5F5F5;
+    color: #262626;
+    text-decoration: none;
+    border-bottom: 0px;
+}
+input.form-control {
+    display:block;
+    width:78%;
+    display:table-cell;
+    float: left;
+    /*height:36px;*/
+    padding:6px 12px 8px;
+    font-size:16px;
+    line-height:1.428571429;
+    color:#555;
+    vertical-align:middle;
+    background-color:#fff;
+    background-image:none;
+    border:1px solid #ccc;
+    border-radius:0px;
+    -webkit-box-shadow:inset 0 1px 1px rgba(0,0,0,0.075);
+    box-shadow:inset 0 1px 1px rgba(0,0,0,0.075);
+    -webkit-transition:border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+    transition:border-color ease-in-out .15s, box-shadow ease-in-out .15s
+}
+.form-control:focus {
+    border-color:#66afe9;
+    outline:0;
+    -webkit-box-shadow:inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, 0.6);
+    box-shadow:inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, 0.6)
+}
+.form-control:-moz-placeholder {
+    color:#999
+}
+.form-control::-moz-placeholder {
+    color:#999
+}
+.form-control:-ms-input-placeholder {
+    color:#999
+}
+.form-control::-webkit-input-placeholder {
+    color:#999
+}
+.form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control {
+    cursor:not-allowed;
+    background-color:#eee
+}
+.input-group-btn {
+    position: relative;
+    white-space: nowrap;
+}
+.input-group-btn {
+    vertical-align: middle;
+    white-space: nowrap;
+    width: 1%;
+}
+.fa-search:before {
+    content:"\f002"
+}
+.sr-only {
+    border: 0 none;
+    clip: rect(0px, 0px, 0px, 0px);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}
