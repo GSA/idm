@@ -711,13 +711,7 @@ div.feature-boxes .centered {
 }
 
 #main {
-	background:#fdfdfd;
-    -webkit-border-bottom-right-radius: 5px;
-    -webkit-border-bottom-left-radius: 5px;
-    -moz-border-radius-bottomright: 5px;
-    -moz-border-radius-bottomleft: 5px;
-    border-bottom-right-radius: 5px;
-    border-bottom-left-radius: 5px;
+width:auto;
 }
 
 
@@ -2872,9 +2866,7 @@ fieldset.captcha{
 }
 
 /* new styles for idm theme*/
-.content-info {
-    border-top: 1px solid #E7E7E7;
-}
+
  a.logo-brand {
     clear: both;
     display: block;
@@ -2954,11 +2946,7 @@ a.logo-brand {
 }
 
 .nav .dropdown-toggle .caret{margin-top: -4px;}
-.content-info {
-    background-color: #EFEFEF;
-    padding: 3em 0;
-    margin-top:10px;
-}
+
 .nav > li > a:hover{border-bottom: 0px;}
 .nav > li > a:active{border-bottom: 0px;}
 .dropdown-menu li{margin-left:0;}
@@ -2994,7 +2982,7 @@ a.logo-brand {
     font-weight: normal;
     line-height: 1.42857;
     margin-bottom: 0;
-    padding: 8px 12px 9px;
+    padding: 5px 12px 4px;
     text-align: center;
     vertical-align: middle;
     white-space: nowrap;
@@ -3171,4 +3159,12 @@ input.form-control {
 }
 #footer {
     border-top: 1px solid #E7E7E7;
+}
+#footer {
+    width: auto !important;
+}
+#main-group{
+    width:980px;
+    float:none;
+    margin:0 auto;
 }
