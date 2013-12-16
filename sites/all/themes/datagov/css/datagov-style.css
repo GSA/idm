@@ -804,7 +804,7 @@ h1.title {
 
 }
 
-.main h1.gutter {}
+#main h1.gutter {background: none;margin:0;}
 
 /* Default node styles
 /-------------------------------------------------------------- */
