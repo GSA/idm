@@ -4,9 +4,7 @@
 /* Add general site styling here for typography and background */
 body {
 	font-size: 75%;   /* also set in datagov.info: settings[base-font-size] = font-size-12 */
-	background-image:url('../images/page-gradient-bg.jpg');
-    background-position:center top;
-    background-repeat: repeat-y;
+
 }
 
 h1,h2,h3,h4,h5 {
@@ -3157,4 +3155,20 @@ input.form-control {
     padding: 0;
     position: absolute;
     width: 1px;
+}
+.input-group-btn > .btn_new {
+    position: relative;
+    margin-left:-1px;
+    margin-top:0px;
+}
+.container {
+    margin: 0 auto;
+    width: 980px;
+}
+.footer-inner {
+    background-color: #EFEFEF;
+    padding: 3em 0;
+}
+.footer-inner {
+    border-top: 1px solid #E7E7E7;
 }
