@@ -3016,3 +3016,48 @@ a.logo-brand {
     position: absolute;
     width: 1px;
 }
+.row {
+    margin-left: -15px;
+    margin-right: -15px;
+}
+.col-md-4 {
+    width: 33.3333%;
+}
+.col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11 {
+    float: left;
+}
+.col-md-2 {
+    width: 16.6667%;
+}
+.col-md-2 {
+    width: 16.6667%;
+}
+.col-md-offset-1 {
+    /*margin-left: 8.33333%;*/
+}
+.col-md-3 {
+    width: 25%;
+}
+
+.form-actions input {
+    background: none repeat scroll 0 0 #294B78;
+    border: medium none #033162;
+    border-radius: 5px 5px 5px 5px;
+    color: #FFFFFF;
+    display: inline-block;
+
+    font-size: 11px !important;
+    font-weight: bold;
+    height: 25px;
+    line-height: 25px;
+    margin: 8px 2px;
+    padding: 0 5px;
+    vertical-align: middle;
+}
+.form-item, .form-actions {
+    margin-bottom: 1em;
+    margin-top: 1em;
+}
+.marker, .form-required {
+    color: #AA1144;
+}
