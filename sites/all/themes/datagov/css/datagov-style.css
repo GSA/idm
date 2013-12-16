@@ -3165,10 +3165,10 @@ input.form-control {
     margin: 0 auto;
     width: 980px;
 }
-.footer-inner {
+#footer {
     background-color: #EFEFEF;
     padding: 3em 0;
 }
-.footer-inner {
+#footer {
     border-top: 1px solid #E7E7E7;
 }
