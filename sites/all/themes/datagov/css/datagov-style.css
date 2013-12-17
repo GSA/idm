@@ -3062,6 +3062,7 @@ a.logo-brand {
     line-height: 1.42857;
     padding: 3px 20px;
     white-space: nowrap;
+    text-decoration: none;
 }
 .dropdown-menu > li > a:hover, .dropdown-menu > li > a:focus {
     background-color: #F5F5F5;
