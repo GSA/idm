@@ -2,7 +2,7 @@
 /* Basic Typography & Colors - datagov
 -------------------------------------------------------------- */
 /* Add general site styling here for typography and background */
-@import url(http://fonts.googleapis.com/css?family=Lato);
+@import url(//fonts.googleapis.com/css?family=Lato);
 body {
 	font-size: 75%;   /* also set in datagov.info: settings[base-font-size] = font-size-12 */
 font-family: 'Lato',Arial,sans-serif;
