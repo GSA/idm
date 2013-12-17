@@ -3156,7 +3156,7 @@ input.form-control {
     float:none;
     margin:0 auto;
 }
-#title_w {
+.title_w {
     background: none repeat scroll 0 0 #4679B2;
     margin-bottom: 10px;
     padding: 0 0 8px;
