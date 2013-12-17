@@ -2,13 +2,14 @@
 /* Basic Typography & Colors - datagov
 -------------------------------------------------------------- */
 /* Add general site styling here for typography and background */
+@import url(http://fonts.googleapis.com/css?family=Lato);
 body {
 	font-size: 75%;   /* also set in datagov.info: settings[base-font-size] = font-size-12 */
-
+font-family: 'Lato',Arial,sans-serif;
 }
 
 h1,h2,h3,h4,h5 {
-    font-family:Georgia,"Times New Roman",Times,serif;
+    font-family:'Lato',Arial,sans-serif;
 }
 
 /* Default link styles - separate a:visited for a different visited link style */
@@ -377,7 +378,7 @@ margin-top:8px;
     width:205px !important;
     height:28px !important;
     line-height:28px;
-    font-family:Verdana, Arial, Helvetica, sans-serif;
+    font-family:'Lato',Arial,sans-serif;
     color:#666;
     font-size:11px;
     border:none;
@@ -388,7 +389,7 @@ margin-top:8px;
 #search-block-form input.form-text {
     background-color:transparent;
     width:160px;
-    font-family:Verdana, Arial, Helvetica, sans-serif;
+    font-family:'Lato',Arial,sans-serif;
     color:#707070;
     font-size:11px;
     border:none;
@@ -437,7 +438,7 @@ margin-top:8px;
 	padding:0;
 	line-height:35px;
 	margin:0 auto;
-	font-family:Georgia, "Times New Roman", Times, serif;
+	font-family:'Lato',Arial,sans-serif;
 	color:#fff;
 }
 
@@ -620,7 +621,7 @@ div.home-latest-datasets {
 div.home-latest-datasets h2.block-title {
     color:#fff;
     text-align:center;
-    font-family:Georgia,"Times New Roman",Times,serif;
+    font-family:'Lato',Arial,sans-serif;
     margin:0;
 }
 
@@ -660,7 +661,7 @@ div.feature-boxes h2.block-title a {
     line-height:36px;
     text-align:center;
     text-transform:uppercase;
-    font-family:Georgia,"Times New Roman",Times, serif;
+    font-family:'Lato',Arial,sans-serif;
     /* text-decoration:none; */
 }
 div.feature-boxes h2.block-title a:hover,
@@ -795,7 +796,7 @@ h1.title {
 	display:block;
     color: #fff;
     font-weight:normal;
-    font-family:Georgia, "Times New Roman", Times, serif;
+    font-family:'Lato',Arial,sans-serif;
     line-height:90px;
     height:90px;
 
@@ -3160,4 +3161,9 @@ input.form-control {
     background: none repeat scroll 0 0 #4679B2;
     margin-bottom: 10px;
     padding: 0 0 8px;
+}
+#main h1.gutter {
+
+    width: 980px;
+    margin: 0 auto;
 }
