@@ -14,14 +14,11 @@
  * @param $form_id
 */
 function idm_user_validation_form_alter(&$form, &$form_state, $form_id){
-    if ($form_id == 'user_register_form') {
         $form['#validate'][] = 'idm_user_validation_validate_register_form';
-    }
 }
 
 function idm_user_validation_validate_register_form(&$form, &$form_state) {
     $tname = $form_state['values']['field_organization'];
-
     $name= $tname['und'][0]['value'];
     $email = $form_state['values']['mail'];
     if(validate_domain($email)){
