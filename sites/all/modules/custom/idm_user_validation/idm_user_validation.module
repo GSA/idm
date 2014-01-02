@@ -22,6 +22,9 @@ function idm_user_validation_validate_register_form(&$form, &$form_state) {
     $tname = $form_state['values']['field_organization'];
 
     $name= $tname['und'][0]['value'];
+    if(idm_user_validation_validate_domain($form_state['values']['mail'])){
+        form_set_error('mail', t('Domain not allowed, Please contact the site administrator'));
+    }
     $validate=taxonomy_get_term_by_name($name);
 
     if(!empty($validate))
@@ -48,5 +51,16 @@ function idm_user_validation_validate_register_form(&$form, &$form_state) {
     }
     }
     }
+}
+
+function idm_user_validation_validate_domain($mail) {
+    $blacklist = array('musclexleratorreview.com', 'sendmeanemailplease.com', 'laposte.net', 'digestitdiet.net');
+    $mail = strtolower($mail);
+    foreach($blacklist as $bl=>$domain) {
+        if(strstr($mail,$domain)){
+            return true;
+        }
+    }
+    return false;
 }
 
