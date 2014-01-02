@@ -28,7 +28,9 @@ function idm_user_validation_validate_register_form(&$form, &$form_state) {
     $typeofuser=$form_state['values']['field_type_of_user']['und'][0]['value'];
     if($typeofuser=="Publisher") {
         $tname = $form_state['values']['field_organization'];
-        $name= $tname['und'][0]['value'];
+        if(isset($tname))
+            $name= $tname['und'][0]['value'];
+        else $name = "";
         $validate=taxonomy_get_term_by_name($name);
         if(!empty($validate)){
             form_set_error('field_organization', t('Organization already exists please select it from the list'));
