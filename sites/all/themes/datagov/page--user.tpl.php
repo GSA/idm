@@ -19,12 +19,14 @@
         <div id="main-wrapper" class="main-wrapper full-width clearfix">
             <div id="main" class="main region <?php print $grid_width; ?>">
                 <div id="main-inner" class="main-inner inner clearfix">
+                    <div class="title_w">
                     <?php print render($title_prefix); ?>
                     <?php if ($title ): ?>
                     <h1 class="title gutter"><?php print $title; ?></h1>
                     <?php endif; ?>
                     <?php print render($title_suffix); ?>
                     <?php print render($page['sidebar_first']); ?>
+                        </div>
 
                     <!-- main group: width = grid_width - sidebar_first_width -->
                     <div id="main-group" class="main-group region nested <?php print $main_group_width; ?>">

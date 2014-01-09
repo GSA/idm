@@ -13,40 +13,52 @@
  * @param $form_state
  * @param $form_id
 */
-function idm_user_validation_form_user_profile_form_alter(&$form, &$form_state, $form_id){
-
-    $form['#validate'][] = 'idm_user_validation_validate_register_form';
+function idm_user_validation_form_alter(&$form, &$form_state, $form_id){
+    if ($form_id == 'user_register_form') {
+        $form['#validate'][] = 'idm_user_validation_validate_register_form';
+    }
 }
 
 function idm_user_validation_validate_register_form(&$form, &$form_state) {
-    $tname = $form_state['values']['field_organization'];
-
-    $name= $tname['und'][0]['value'];
-    $validate=taxonomy_get_term_by_name($name);
-
-    if(!empty($validate))
-    {
-
-        form_set_error('field_organization', t('Organization already exists please select it from the list'));
+    $email = $form_state['values']['mail'];
+    if(validate_domain($email)){
+        form_set_error('mail', t('Domain not allowed, Contact the site administrator.'));
     }
-    $uvalues=$form_state['values']['field_unique_id'];
-    if(!empty($uvalues)){
-    $uvalue=$form_state['values']['field_unique_id']['und'][0]['value'];
 
-
-    $result= db_select('field_data_field_unique_id', 'a')
-            ->fields('a', array('field_unique_id_value'))
-            ->condition('entity_type', 'taxonomy_term','=')
-            ->condition('field_unique_id_value', $uvalue, '=')
-            ->execute()
-            ->fetchAssoc();
-
-    if (!empty($name)){
-    if ($result){
-
-        form_set_error('field_organization', t('Unique ID already exists'));
+    $typeofuser=$form_state['values']['field_type_of_user']['und'][0]['value'];
+    if($typeofuser=="Publisher") {
+        $tname = $form_state['values']['field_organization'];
+        $name= $tname['und'][0]['value'];
+        $validate=taxonomy_get_term_by_name($name);
+        if(!empty($validate)){
+            form_set_error('field_organization', t('Organization already exists please select it from the list'));
+        }
+        $uvalues=$form_state['values']['field_unique_id'];
+        if(!empty($uvalues)){
+            $uvalue=$form_state['values']['field_unique_id']['und'][0]['value'];
+            $result= db_select('field_data_field_unique_id', 'a')
+                    ->fields('a', array('field_unique_id_value'))
+                    ->condition('entity_type', 'taxonomy_term','=')
+                    ->condition('field_unique_id_value', $uvalue, '=')
+                    ->execute()
+                    ->fetchAssoc();
+            if (!empty($name)){
+                if ($result){
+                    form_set_error('field_organization', t('Unique ID already exists'));
+                }
+            }
+        }
     }
+}
+
+function validate_domain($mail) {
+    $blacklist = array('musclexleratorreview.com', 'sendmeanemailplease.com', 'laposte.net', 'digestitdiet.net');
+    $mail = strtolower($mail);
+    foreach($blacklist as $bl=>$domain) {
+        if(strstr($mail,$domain)){
+            return true;
+        }
     }
-    }
+    return false;
 }
 
