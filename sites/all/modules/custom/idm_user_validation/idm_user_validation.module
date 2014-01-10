@@ -21,12 +21,11 @@ function idm_user_validation_form_alter(&$form, &$form_state, $form_id){
 
 function idm_user_validation_validate_register_form(&$form, &$form_state) {
     $email = $form_state['values']['mail'];
-    if(validate_domain($email)){
+    $typeofuser=$form_state['values']['field_type_of_user']['und'][0]['value'];
+    if(validate_domain($email,$typeofuser)){
         form_set_error('mail', t('Domain not allowed, Contact the site administrator.'));
     }
-
-    $typeofuser=$form_state['values']['field_type_of_user']['und'][0]['value'];
-    if($typeofuser=="Publisher") {
+       if($typeofuser=="Publisher") {
         $tname = $form_state['values']['field_organization'];
         $name= $tname['und'][0]['value'];
         $validate=taxonomy_get_term_by_name($name);
@@ -51,8 +50,12 @@ function idm_user_validation_validate_register_form(&$form, &$form_state) {
     }
 }
 
-function validate_domain($mail) {
-    $blacklist = array('musclexleratorreview.com', 'sendmeanemailplease.com', 'laposte.net', 'digestitdiet.net');
+function validate_domain($mail,$typeofuser) {
+    if($typeofuser=="Publisher") {
+        $blacklist = array('musclexleratorreview.com', 'sendmeanemailplease.com', 'laposte.net', 'digestitdiet.net','hotmail.com');
+    } else {
+        $blacklist = array('musclexleratorreview.com', 'sendmeanemailplease.com', 'laposte.net', 'digestitdiet.net');
+    }
     $mail = strtolower($mail);
     foreach($blacklist as $bl=>$domain) {
         if(strstr($mail,$domain)){
