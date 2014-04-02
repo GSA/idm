@@ -84,8 +84,10 @@ Drupal.behaviors.password = function(context) {
       this.confirmClass = confirmClass;
 
       // Show the indicator and tips.
-      passwordStrength.css({ visibility: "visible" });
-      passwordDescription.show();
+      if (null !== result.message && result.message.length > 0) {
+        passwordStrength.css({ visibility: "visible" });
+        passwordDescription.show();
+      }
     };
 
     // Do a delayed check on the password fields.
