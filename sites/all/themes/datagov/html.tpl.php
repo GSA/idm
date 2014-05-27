@@ -232,7 +232,7 @@ _tag.dcsCollect();
         $('form.webform-client-form *:input[type!=hidden]:first').focus();
     });
 
- document.getElementById("edit-field-administrator-approved-und").checked = false;
+ 
 
 
 
