@@ -36,21 +36,24 @@ function password_policy_password_tab($form, &$form_state, $account) {
       $current_pass_description = t('Enter your current password to change the %mail or %pass. !request_new.', array('%mail' => $protected_values['mail'], '%pass' => $protected_values['pass'], '!request_new' => $request_new));
     }
     // The user must enter their current password to change to a new one.
-    $form['current_pass_required_values'] = array(
-      '#type' => 'value',
-      '#value' => array('pass' => $protected_values['pass']),
-    );
-    $form['account']['current_pass'] = array(
-      '#type' => 'password',
-      '#title' => t('Current password'),
-      '#size' => 25,
-      '#access' => !empty($protected_values),
-      '#description' => $current_pass_description,
-      '#weight' => -5,
-      '#attributes' => array('autocomplete' => 'off'),
-    );
+    if (isset($protected_values['pass'])){
+      $form['current_pass_required_values'] = array(
+        '#type' => 'value',
+        '#value' => array('pass' => $protected_values['pass']),
+      );
 
-    $form['#validate'][] = 'user_validate_current_pass';
+      $form['account']['current_pass'] = array(
+        '#type' => 'password',
+        '#title' => t('Current password'),
+        '#size' => 25,
+        '#access' => !empty($protected_values),
+        '#description' => $current_pass_description,
+        '#weight' => -5,
+        '#attributes' => array('autocomplete' => 'off'),
+      );
+
+      $form['#validate'][] = 'user_validate_current_pass';
+    }
   }
 
   $form['pass'] = array(

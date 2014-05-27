@@ -32,14 +32,13 @@ function password_policy_constraint_history_error($constraint) {
 function password_policy_constraint_history_validate($password, $constraint, $account) {
   require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');
   $old_passwords = _password_policy_constraint_history_old_passwords($constraint, $account->uid);
-  foreach($old_passwords as $pw) {
-    $hash = _password_crypt('sha512', $password, $pw);
-    if($hash == $pw) {
-      return false;
+  foreach ($old_passwords as $pw) {
+    if (user_check_password($password, $account)) {
+      return FALSE;
     }
   }
 
-  return true;
+  return TRUE;
 }
 
 //////////////////////////////////////////////////////////////////////////////

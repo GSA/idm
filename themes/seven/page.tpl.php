@@ -1,11 +1,4 @@
-<script type="text/javascript">
-    jQuery(function($){$('#edit-field-administrator-approved-und').click(function(){
-        $('#edit-status-1').attr('checked', true);
-    });});
-     jQuery(function($){$('#edit-field-administrator-approved-und').click(function(){
-        $('#edit-field-tax-email-und').attr('checked', true);
-    });});
-</script>
+
   <div id="branding" class="clearfix">
     <?php print $breadcrumb; ?>
     <?php print render($title_prefix); ?>
