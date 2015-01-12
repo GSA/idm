@@ -56,7 +56,7 @@
 
         fixDropdown = function () { jQuery(function ($)
         {
-           var value=$("#edit-field-organization-type-und").val();
+           var value=$("#edit-field-organization-und-0-value").val();
             if(value  ==="_none") {
                 $("#edit-field-organization").css("display","none");
 
