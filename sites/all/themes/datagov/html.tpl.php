@@ -97,6 +97,8 @@
                 var field_val = $("#edit-field-state-organization-und option:selected").text();
                 if(field_val =="Add New Organization") {
                     $("#edit-field-organization").css("display","block");
+                }else{
+                    $("#edit-field-organization").css("display","none");
                 }
             });
 
@@ -105,30 +107,40 @@
                 var field_val = $("#edit-field-federal-organization-und option:selected").text();
                 if(field_val =="Add New Organization") {
                     $("#edit-field-organization").css("display","block");
+                }else{
+                    $("#edit-field-organization").css("display","none");
                 }
             });
             $("#edit-field-local-organization-und").live("change", function() {
                 var field_val = $("#edit-field-local-organization-und option:selected").text();
                 if(field_val =="Add New Organization") {
                     $("#edit-field-organization").css("display","block");
+                }else{
+                    $("#edit-field-organization").css("display","none");
                 }
             });
             $("#edit-field-non-profit-organization-und").live("change", function() {
                 var field_val = $("#edit-field-state-organization-und option:selected").text();
                 if(field_val =="Add New Organization") {
                     $("#edit-field-organization").css("display","block");
+                }else{
+                    $("#edit-field-organization").css("display","none");
                 }
             });
             $("#edit-field-university-organization-und").live("change", function() {
                 var field_val = $("#edit-field-university-organization-und option:selected").text();
                 if(field_val =="Add New Organization") {
                     $("#edit-field-organization").css("display","block");
+                }else{
+                    $("#edit-field-organization").css("display","none");
                 }
             });
             $("#edit-field-other-organization-und").live("change", function() {
                 var field_val = $("#edit-field-other-organization-und option:selected").text();
                 if(field_val =="Add New Organization") {
                     $("#edit-field-organization").css("display","block");
+                }else{
+                    $("#edit-field-organization").css("display","none");
                 }
             });
 
