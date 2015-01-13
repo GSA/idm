@@ -120,7 +120,7 @@
                 }
             });
             $("#edit-field-non-profit-organization-und").live("change", function() {
-                var field_val = $("#edit-field-state-organization-und option:selected").text();
+                var field_val = $("#edit-field-non-profit-organization-und option:selected").text();
                 if(field_val =="Add New Organization") {
                     $("#edit-field-organization").css("display","block");
                 }else{
