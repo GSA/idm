@@ -151,7 +151,6 @@
                     $("#edit-field-organization").css("display","none");
                 }
             });
-
         });
             setTimeout('fixDropdown()', 1000);
         }
