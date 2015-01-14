@@ -143,6 +143,14 @@
                     $("#edit-field-organization").css("display","none");
                 }
             });
+            $("#edit-field-tribal-organization-und").live("change", function() {
+                var field_val = $("#edit-field-tribal-organization-und option:selected").text();
+                if(field_val =="Add New Organization") {
+                    $("#edit-field-organization").css("display","block");
+                }else{
+                    $("#edit-field-organization").css("display","none");
+                }
+            });
 
         });
             setTimeout('fixDropdown()', 1000);
