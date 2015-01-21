@@ -17,7 +17,8 @@ function idm_user_validation_form_alter(&$form, &$form_state, $form_id){
      $form['#validate'][] = 'idm_user_validation_validate_register_form';
 }
 
-function idm_user_validation_validate_register_form(&$form, &$form_state,$form_id) {
+function idm_user_validation_validate_register_form(&$form, &$form_state) {
+    $form_id = $form['form_id']["#value"];
     $email = $form_state['values']['mail'];
     $typeofuser=$form_state['values']['field_type_of_user']['und'][0]['value'];
     if ($form_id == 'user_register_form') {
@@ -25,7 +26,7 @@ function idm_user_validation_validate_register_form(&$form, &$form_state,$form_i
              form_set_error('mail', t('Domain not allowed, Contact the site administrator.'));
         }
     }
-       if($typeofuser=="Publisher") {
+   if($typeofuser=="Publisher") {
         $tname = $form_state['values']['field_organization'];
         $name= $tname['und'][0]['value'];
         $validate=taxonomy_get_term_by_name($name);
