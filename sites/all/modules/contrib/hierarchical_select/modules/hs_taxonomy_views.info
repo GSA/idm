@@ -8,9 +8,9 @@ core = 6.x
 
 files[] = hs_taxonomy_views_handler_filter_term_node_tid.inc
 
-; Information added by drupal.org packaging script on 2011-09-16
-version = "7.x-3.0-alpha5"
+; Information added by Drupal.org packaging script on 2014-12-13
+version = "7.x-3.0-alpha9"
 core = "7.x"
 project = "hierarchical_select"
-datestamp = "1316201202"
+datestamp = "1418477882"
 

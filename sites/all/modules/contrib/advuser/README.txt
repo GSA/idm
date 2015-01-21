@@ -41,5 +41,5 @@ Navigate to admin/settings/advuser to setup the email notification and other
 items related to your operation of this module.
 
 Usage:
-Navigate to admin/user/user/advuser to begin filtering and creating actions
+Navigate to admin/people/advuser to begin filtering and creating actions
 for selected users.

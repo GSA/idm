@@ -515,8 +515,8 @@ function hs_taxonomy_views_hierarchical_select_entity_count($item, $params) {
 
     // We only need the count query. We don't care about the actual fields or
     // order of the View.
-    $count_query = $temp_view->build_info['count_query'];
-    $args        = $temp_view->build_info['query_args'];
+    $count_query = !empty($temp_view->build_info['count_query']) ? $temp_view->build_info['count_query'] : $temp_view->query->count_query;
+    $args        = !empty($temp_view->build_info['query_args']) ? $temp_view->build_info['query_args'] : $temp_view->query->query_args;
 
     // Regenerate the query after we set the distinct flag for the nid field.
     // This unfortunately doesn't work, because Views doesn't create an

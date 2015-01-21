@@ -33,7 +33,13 @@ function hs_menu_form_node_form_alter(&$form, &$form_state) {
   if (isset($form['menu']['link']['parent']) && $form['menu']['#access']) {
     unset($form['menu']['link']['parent']['#options']);
     $form['menu']['link']['parent']['#type'] = 'hierarchical_select';
-    _hs_menu_apply_config($form['menu']['link']['parent'], NULL);
+    _hs_menu_apply_config($form['menu']['link']['parent'], array('type' => $form['type']['#value']));
+
+     // Set custom submit callback.
+     array_unshift($form['#submit'], 'hs_menu_node_form_submit');
+     // Change the loaded default value into an array so we can populate the
+     // Hierarchical Select element.
+     $form['menu']['link']['parent']['#default_value'] = array($form['menu']['link']['parent']['#default_value']);
   }
 }
 
@@ -47,7 +53,10 @@ function hs_menu_form_menu_edit_item_alter(&$form, &$form_state) {
   unset($form['parent']['#options']);
   $original_item = $form['original_item']['#value'];
   $form['parent']['#type'] = 'hierarchical_select';
-  _hs_menu_apply_config($form['parent'], array($original_item['menu_name'], $original_item['mlid']));
+  _hs_menu_apply_config($form['parent'], array('exclude' => array(
+    $original_item['menu_name'],
+    $original_item['mlid'],
+  )));
 
   // Set custom submit callback.
   array_unshift($form['#submit'], 'hs_menu_menu_edit_item_form_submit');
@@ -65,6 +74,13 @@ function hs_menu_menu_edit_item_form_submit(&$form, &$form_state) {
   $form_state['values']['parent'] = $form_state['values']['parent'][0];
 }
 
+/**
+ * Submit callback; node edit form.
+ */
+function hs_menu_node_form_submit(&$form, &$form_state) {
+  // Don't return an array, but a single item.
+  $form_state['values']['menu']['parent'] = $form_state['values']['menu']['parent'][0];
+}
 
 //----------------------------------------------------------------------------
 // Menu callbacks.
@@ -112,8 +128,20 @@ function hs_menu_hierarchical_select_root_level($params) {
   $menus = array();
 
   $result = db_query("SELECT menu_name, title FROM {menu_custom} ORDER BY title");
-  while ($menu = $result->fetchObject()) {
-    $menus[$menu->menu_name . ':0'] = $menu->title;
+  // If the type is set, respect the core menu options setting.
+  if (isset($params['type'])) {
+    $type_menus = variable_get('menu_options_' . $params['type'], array('main-menu' => 'main-menu'));
+    while ($menu = $result->fetchObject()) {
+      if (in_array($menu->menu_name, $type_menus)) {
+        $menus[$menu->menu_name . ':0'] = $menu->title;
+      }
+    }
+  }
+  // Fall back to the legacy approach, show all menu's.
+  else {
+    while ($menu = $result->fetchObject()) {
+      $menus[$menu->menu_name . ':0'] = $menu->title;
+    }
   }
 
   return $menus;
@@ -160,7 +188,7 @@ function hs_menu_hierarchical_select_valid_item($item, $params) {
   $valid = TRUE;
 
   // Validate menu name.
-  $valid = (in_array($parts[0], menu_get_names()));
+  $valid = (array_key_exists($parts[0], menu_get_menus()));
 
   // Validate hierarchy of mlids.
   for ($i = 1; $valid && $i < count($parts); $i++) {
@@ -239,11 +267,12 @@ function _hs_menu_children($tree, $menu_name, $plid = 0, $exclude = FALSE) {
 /**
  * Helper function to apply the HS config to a form item.
  */
-function _hs_menu_apply_config(&$form, $exclude) {
+function _hs_menu_apply_config(&$form, $params) {
   $form['#config'] = array(
     'module' => 'hs_menu',
     'params' => array(
-      'exclude' => $exclude,
+      'exclude' => isset($params['exclude']) ? $params['exclude'] : NULL,
+      'type' => isset($params['type']) ? $params['type'] : NULL,
     ),
     'save_lineage'    => 0,
     'enforce_deepest' => 0,

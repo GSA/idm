@@ -12,6 +12,31 @@ function seckit_uninstall() {
   variable_del('seckit_csrf');
   variable_del('seckit_clickjacking');
   variable_del('seckit_ssl');
+  variable_del('seckit_various');
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function seckit_requirements($phase) {
+  $requirements = array();
+  // Ensure translations don't break during installation.
+  $t = get_t();
+
+  if ($phase == 'runtime') {
+    $options = _seckit_get_options();
+    $csp_options = $options['seckit_xss']['csp'];
+
+    if ($csp_options['report-only']) {
+      $requirements['seckit'] = array(
+        'title' => $t('Security Kit'),
+        'value' => $t("Content Security Policy (CSP) is in 'report only' mode. Policy violations will <em>not</em> be blocked. !configure.", array('!configure' => l('Configure Security Kit', 'admin/config/system/seckit'))),
+        'severity' => REQUIREMENT_WARNING,
+      );
+    }
+  }
+
+  return $requirements;
 }
 
 /**

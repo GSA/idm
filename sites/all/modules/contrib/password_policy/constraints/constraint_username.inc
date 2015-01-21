@@ -4,8 +4,9 @@
  * Password policy constraint callbacks.
  */
 
-//////////////////////////////////////////////////////////////////////////////
-// Constraint API
+/****************************************************************************/
+/* Constraint API                                                           */
+/****************************************************************************/
 
 /**
  * Description of the constraint.
@@ -25,6 +26,11 @@ function password_policy_constraint_username_error($constraint) {
  * Password validation.
  */
 function password_policy_constraint_username_validate($password, $constraint, $account) {
+  // The username may be empty if not entered on the user registration form.
+  if (!$account->name) {
+    return TRUE;
+  }
+
   $username_lowercase = drupal_strtolower($account->name);
   $password_lowercase = drupal_strtolower($password);
   return strpos($password_lowercase, $username_lowercase) === FALSE;
@@ -53,4 +59,3 @@ function password_policy_constraint_username_js($constraint, $account) {
   $s .= "  }\n";
   return $s;
 }
-

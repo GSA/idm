@@ -32,7 +32,7 @@ function advuser_admin_account($form, &$form_state) {
 
   foreach (advuser_profile_fields() as $field) {
     if (isset($field->name)) {
-      $ff[$field->name] = array($field->name => array('data' => t($field->title), 'field' => "$field->name.value"));
+      $ff[$field->name] = array('data' => t($field->title), 'field' => "$field->name.value");
     }
   }
 
@@ -69,6 +69,7 @@ function advuser_admin_account($form, &$form_state) {
   // The callbacks only operate on the current screenfull of data and know
   // nothing about the Select All Users mode.
   $operations = module_invoke_all('advuser_operations');
+  $operations += module_invoke_all('user_operations');
 
   foreach ($operations as $operation => $array) {
     $options[$operation] = $array['label'];
@@ -91,19 +92,33 @@ function advuser_admin_account($form, &$form_state) {
   $status = array(t('blocked'), t('active'));
 
   $sql = advuser_build_query();
-  $sql = $sql->extend('PagerDefault')->extend('TableSort');
+  $sql = $sql->extend('TableSort');
+
+  $limit = variable_get('advuser_listno', 50);
+  $include_uid1 = variable_get('advuser_allow_list_uid1', FALSE);
+
+  $query_count = NULL;
+  if ($limit !== 'unlimited') {
+    $sql = $sql->extend('PagerDefault');
+
+    $query_count = advuser_build_query('count');
+    $sql->setCountQuery($query_count);
+
+    // Correct LIMIT if advuser_allow_list_uid1 per foreach check below.
+    if (empty($include_uid1)) {
+      $limit++;
+    }
+
+    $sql->limit($limit);
+  }
+
   $sql->orderByHeader($header);
-
-  $query_count = advuser_build_query('count');
-  $sql->setCountQuery($query_count);
-  $sql->limit(50);
-
   $result = $sql->execute();
 
   $accounts = array();
   $inputs = array();
   foreach ($result as $account) {
-    if ($account->uid && ($account->uid != 1 || variable_get('advuser_allow_list_uid1', FALSE))) {
+    if ($account->uid && ($account->uid != 1 || $include_uid1)) {
       $users_roles = array();
       $roles_result = db_select('users_roles', 'ur')
         ->fields('ur', array('rid'))
@@ -146,7 +161,7 @@ function advuser_admin_account($form, &$form_state) {
             'delete' => array(
               '#type' => 'link',
               '#title' => t('delete'),
-              '#href' => "user/$account->uid/delete",
+              '#href' => "user/$account->uid/cancel",
               '#options' => array('query' => $destination),
             ),
           ),
@@ -155,14 +170,22 @@ function advuser_admin_account($form, &$form_state) {
     }
   }
 
+  if (!empty($query_count)) {
+    $query_count = $query_count->execute()->fetchField();
+    $query_count = t('Filtered %count users.', array(
+      '%count' => $query_count,
+    ));
+  }
+
   $form['accounts'] = array(
     '#type' => 'tableselect',
     '#header' => $header,
     '#options' => $accounts,
     '#empty' => t('No people available.'),
     '#value' => $inputs,
+    '#prefix' => (!empty($query_count) ? '<p>' . $query_count . '</p>' : ''),
   );
-  $form['pager'] = array('#value' => theme('pager'));
+  $form['pager'] = array('#markup' => theme('pager'));
 
   return $form;
 }
@@ -172,7 +195,9 @@ function advuser_admin_account($form, &$form_state) {
  */
 function advuser_admin_account_submit($form, &$form_state) {
   $operations = module_invoke_all('advuser_operations', $form_state);
+  $operations += module_invoke_all('user_operations', $form, $form_state);
   $operation = $operations[$form_state['values']['operation']];
+
   $destination = $form_state['values']['destination'];
   // Filter out unchecked accounts.
   $accounts_selected = array_filter($form_state['values']['accounts']);
@@ -201,57 +226,57 @@ function advuser_admin_account_submit($form, &$form_state) {
       }
       $selectall = FALSE;
     } break;
+
     case 'deselectall': {
       $selectall = FALSE;
       $accounts = array();
       $deselected = array();
       drupal_set_message(t('All selections have been reset.'));
     } break;
+
     case 'selectall': {
       $selectall = TRUE;
       $accounts = array();
       $deselected = array();
       drupal_set_message(t('All filtered users have been selected.'));
     } break;
-    case 'block': {
-      foreach ($accounts as $user_id) {
-        $account = user_load((int)$user_id, TRUE);
-        if ($account !== FALSE && $account->status == 1) {
-          user_save($account, array('status' => 0));
-        }
-        unset($accounts[$user_id]);
-      }
-      drupal_set_message(t('The selected users have been blocked.'));
-      $selectall = FALSE;
-    } break;
-    case 'unblock': {
-      foreach ($accounts as $user_id) {
-        $account = user_load((int)$user_id, TRUE);
-        if ($account !== FALSE && $account->status == 0) {
-          user_save($account, array('status' => 1));
-        }
-        unset($accounts[$user_id]);
-      }
-      drupal_set_message(t('The selected users have been unblocked.'));
-      $selectall = FALSE;
-    } break;
 
     case 'email': {
       // Menu callback is provided for mass emailing.
+      $completeForm =& $form_state['complete form']['accounts'];
+      foreach ($form_accounts as $form_user_id => $value) {
+        $selected = isset($completeForm[$form_user_id]['#value'])
+        ? $completeForm[$form_user_id]['#value']
+        : 0;
+        if ($selected) {
+          $accounts[$form_user_id] = $form_user_id;
+        }
+      }
+
       drupal_goto('admin/people/advuser/confirm/email');
     } break;
 
     case 'delete': {
       // Menu callback is provided for mass deleting.
+      $completeForm =& $form_state['complete form']['accounts'];
+      foreach ($form_accounts as $form_user_id => $value) {
+        $selected = isset($completeForm[$form_user_id]['#value'])
+          ? $completeForm[$form_user_id]['#value']
+          : 0;
+        if ($selected) {
+          $accounts[$form_user_id] = $form_user_id;
+        }
+      }
+
       drupal_goto('admin/people/advuser/confirm/delete');
     } break;
   }
 
-  // The add_role and remove_role actions have a callback that is called from
-  // here.
-  if (isset($operation['callback'])) {
-    $function = $operation['callback'];
 
+
+
+
+  if (!empty($operation['callback']) && $function = $operation['callback']) {
     // Add in callback arguments if present.
     if (isset($operation['callback arguments'])) {
       $args = array_merge(array($accounts_selected), $operation['callback arguments']);
@@ -261,9 +286,9 @@ function advuser_admin_account_submit($form, &$form_state) {
     }
     call_user_func_array($function, $args);
 
-    $act = str_replace('_', ' ', $operation['callback arguments'][0]);
-    drupal_set_message(t('The @action action has been applied.', array('@action' => t($act))));
+    drupal_set_message(t('The update has been performed.'));
   }
+
 }
 
 // vim:ft=php:sts=2:sw=2:ts=2:et:ai:sta:ff=unix
