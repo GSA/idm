@@ -143,3 +143,4 @@ form input.form-submit:focus,
 height:155px;
  width:320px;
 }
+div.edit-feed-me-wrapper { display:none; }
