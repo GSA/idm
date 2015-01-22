@@ -30,7 +30,7 @@ function advuser_settings() {
   // Maximum rows in dataset to display?
   $form['advuser_list']['advuser_listno'] = array(
     '#type' => 'select',
-    '#options' => drupal_map_assoc(array(5, 10, 15, 20, 25, 50, 75, 100, 125, 150, 175, 200)),
+    '#options' => drupal_map_assoc(array(50, 100, 500, 1000, 'unlimited')),
     '#title' => t('Number of users in listing'),
     '#description' => t('Sets how many users to display in table view'),
     '#default_value' => variable_get('advuser_listno', 50),
@@ -47,7 +47,7 @@ function advuser_settings() {
   if (variable_get('advuser_allow_list_uid1', FALSE)) {
     drupal_set_message(t('Site administrator is set to be editable in mass lists.'), 'advuser_warning', FALSE);
   }
-    
+
   // Controls for the user activity notifications.
   $form['advuser_mail'] = array(
     '#type' => 'fieldset',
@@ -125,7 +125,7 @@ function advuser_settings() {
 
   // Inform of allowed tokens.
   $form['advuser_mail']['update']['variables'] = array(
-    '#type' => 'markup', 
+    '#type' => 'markup',
     '#prefix' => '<div class="advuser-inset-panel">',
     '#markup' => t(
       ADVUSER_SUBSTITUTION_TEXT,
@@ -157,7 +157,7 @@ function advuser_settings() {
     '#description' => t('The mail that is going to be sent to the selected roles when a user modifies their account.  You may insert substitution variables within this item.'),
     '#default_value' => variable_get('advuser_modify_mail', t(ADVUSER_DEFAULT_MODIFY_MAIL)),
   );
-        
+
   // Provide checkboxes for available profile fields.
   if (module_exists('profile')) {
     $form['advuser_profile'] = array(
@@ -176,7 +176,7 @@ function advuser_settings() {
     foreach ($result as $row) {
       $fields[$row->fid] = $row->title;
     }
-    
+
     $values = array();
     $options = variable_get('advuser_profile_fields', NULL);
     foreach ((array)$options as $opt => $v) {
@@ -188,14 +188,14 @@ function advuser_settings() {
     if (!count($values)) {
       drupal_set_message(t('Profile fields have not been selected for use.'), 'advuser_warning', FALSE);
     }
-    
+
     $form['advuser_profile']['advuser_profile_fields'] = array(
         '#type' => 'checkboxes',
         '#description' => t('Profile fields to be used as filters for the users.'),
         '#title' => t('Profile fields'),
         '#options' => $fields,
         '#default_value' => $values,
-    );    
+    );
   }
 
   // Controls for miscellaneous options.

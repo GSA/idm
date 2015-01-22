@@ -4,9 +4,9 @@ dependencies[] = menu
 package = Access control
 core = 7.x
 
-; Information added by drupal.org packaging script on 2012-02-16
+; Information added by drupal.org packaging script on 2013-10-01
 version = "7.x-1.x-dev"
 core = "7.x"
 project = "menu_per_role"
-datestamp = "1329351788"
+datestamp = "1380586901"
 
