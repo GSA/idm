@@ -36,7 +36,7 @@ function idm_user_validation_validate_register_form(&$form, &$form_state) {
         $uvalues=$form_state['values']['field_unique_id'];
          if(!empty($uvalues)){
             global $user;
-             dsm(print $user->uid);
+            dsm(user_role_permissions($user->roles));
             if (in_array(array('super user', 'admin'), $user->roles)) {
                 dsm(print $user->uid);
 
