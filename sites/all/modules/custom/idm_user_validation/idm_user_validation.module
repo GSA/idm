@@ -33,8 +33,8 @@ function idm_user_validation_validate_register_form(&$form, &$form_state) {
         if(!empty($validate)){
             form_set_error('field_organization', t('Organization already exists please select it from the list'));
         }
-        $uvalues=$form_state['values']['field_unique_id'];
-       //dsm($uvalues);
+        $uvalues=$form_state['values']['field_unique_id']['und'][0]['value'];
+
          if($uvalues!=''){
 
                 $uvalue=$form_state['values']['field_unique_id']['und'][0]['value'];
