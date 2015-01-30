@@ -38,6 +38,7 @@ function idm_user_validation_validate_register_form(&$form, &$form_state) {
             global $user;
              dsm(print $user->uid);
             if (in_array(array('super user', 'admin'), $user->roles)) {
+                dsm(print $user->uid);
 
             $uvalue=$form_state['values']['field_unique_id']['und'][0]['value'];
             $result= db_select('field_data_field_unique_id', 'a')
