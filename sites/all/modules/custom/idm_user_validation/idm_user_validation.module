@@ -35,7 +35,7 @@ function idm_user_validation_validate_register_form(&$form, &$form_state) {
            $vocab = taxonomy_vocabulary_load($vid);
            $vocab_name = $vocab->name;
            if(!empty($vocab_name)){
-               form_set_error('field_organization', t('Organization already exists please select it from the '.$vocab_name.' orgnaization list. Either select that organization name or use another organization name.'));
+               form_set_error('field_organization', t('Organization already exists in the '.$vocab_name.' orgnaization list. Either select that organization name or use another organization name.'));
            }
         }
         $uvalues=$form_state['values']['field_unique_id'];
