@@ -18,6 +18,7 @@ function idm_user_validation_form_alter(&$form, &$form_state, $form_id){
 }
 
 function idm_user_validation_validate_register_form(&$form, &$form_state) {
+    global $user;
     $form_id = $form['form_id']["#value"];
     $email = $form_state['values']['mail'];
     $typeofuser=$form_state['values']['field_type_of_user']['und'][0]['value'];
@@ -40,7 +41,8 @@ function idm_user_validation_validate_register_form(&$form, &$form_state) {
         }
         $uvalues=$form_state['values']['field_unique_id'];
        //dsm($uvalues);
-         if($uvalues!=''){
+        if (is_array($user->roles) && in_array('administrator', array_values($user->roles))) {
+            if($uvalues!=''){
 
                 $uvalue=$form_state['values']['field_unique_id']['und'][0]['value'];
                 $result= db_select('field_data_field_unique_id', 'a')
@@ -49,12 +51,13 @@ function idm_user_validation_validate_register_form(&$form, &$form_state) {
                     ->condition('field_unique_id_value', $uvalue, '=')
                     ->execute()
                     ->fetchAssoc();
-            if (!empty($name)){
-                if ($result){
-                    form_set_error('field_organization', t('Unique ID already exists'));
-                }
+                if (!empty($name)){
+                    if ($result){
+                        form_set_error('field_organization', t('Unique ID already exists'));
+                    }
 
-           }
+                }
+            }
         }
     }
 }
