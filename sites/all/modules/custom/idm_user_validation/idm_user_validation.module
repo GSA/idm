@@ -18,7 +18,6 @@ function idm_user_validation_form_alter(&$form, &$form_state, $form_id){
 }
 
 function idm_user_validation_validate_register_form(&$form, &$form_state) {
-    global $user;
     $form_id = $form['form_id']["#value"];
     $email = $form_state['values']['mail'];
     $typeofuser=$form_state['values']['field_type_of_user']['und'][0]['value'];
@@ -39,10 +38,10 @@ function idm_user_validation_validate_register_form(&$form, &$form_state) {
                form_set_error('field_organization', t('This organization already exists under the organization type '.$vocab_name.'. Select the existing organization or provide a unique name for the new organization.'));
            }
         }
-        $uvalues=$form_state['values']['field_unique_id'];
-
-        if (is_array($user->roles)) {
-
+        $uvalues=$form_state['values']['field_unique_id']['und'][0]['value'];
+     
+	   global $user;
+		if (array_key_exists(11, $user->roles)) {
                 $uvalue=$form_state['values']['field_unique_id']['und'][0]['value'];
                 $result= db_select('field_data_field_unique_id', 'a')
                     ->fields('a', array('field_unique_id_value'))
@@ -50,13 +49,12 @@ function idm_user_validation_validate_register_form(&$form, &$form_state) {
                     ->condition('field_unique_id_value', $uvalue, '=')
                     ->execute()
                     ->fetchAssoc();
-                if (!empty($name)){
-                    if ($result){
-                        form_set_error('field_organization', t('Unique ID already exists'));
-                    }
+            if (!empty($name)){
+                if ($result){
+                    form_set_error('field_organization', t('Unique ID already exists'));
+                }
 
-
-            }
+           }
         }
     }
 }
