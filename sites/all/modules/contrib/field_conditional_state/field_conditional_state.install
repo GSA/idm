@@ -1,0 +1,306 @@
+<?php
+
+/**
+ * @file
+ * Install function for the field_conditional_state module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function field_conditional_state_install() {
+  // Set the module weight to 100.
+  db_update('system')
+    ->fields(array('weight' => 100))
+    ->condition('name', 'field_conditional_state')
+    ->execute();
+}
+
+/**
+ * Implements hook_schema().
+ */
+function field_conditional_state_schema() {
+  $schema['field_conditional_state'] = array(
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'The internal identifier condition.',
+      ),
+      'group_id' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'The field conditional states group id.',
+      ),
+      'control_field' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'description' => 'The control field name.',
+      ),
+      'trigger_state' => array(
+        'type' => 'varchar',
+        'length' => '15',
+        'not null' => TRUE,
+        'description' => 'The trigger state.',
+      ),
+      'trigger_value' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'description' => 'The trigger value.',
+      ),
+    ),
+    'primary key' => array('id'),
+    'foreign keys' => array(
+      'field_conditional_states_group' => array(
+        'table' => 'field_conditional_states_group',
+        'columns' => array('group_id' => 'group_id'),
+      ),
+    ),
+  );
+
+  $schema['field_conditional_states_group'] = array(
+    'fields' => array(
+      'group_id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'The internal identifier.',
+      ),
+      'state' => array(
+        'type' => 'varchar',
+        'length' => '15',
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'entity_type' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'bundle' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'field_name' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'type' => array(
+        'type' => 'varchar',
+        'length' => '3',
+        'not null' => TRUE,
+        'description' => 'The logical connection.',
+      ),
+    ),
+    'primary key' => array('group_id'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Change the field_conditional_state.trigger_values field from varchar to text.
+ */
+function field_conditional_state_update_7100() {
+  $spec = array(
+    'type' => 'text',
+    'not null' => TRUE,
+    'description' => 'The trigger values.',
+  );
+
+  db_change_field('field_conditional_state', 'trigger_values', 'trigger_values', $spec);
+
+  return t('Changed "trigger_values" field from type "varchar" to "text".');
+}
+
+/**
+ * Upgrade module from 7.x-1.x to 7.x-2.x.
+ */
+function field_conditional_state_update_7200() {
+
+  // Add new group_id field.
+  $spec = array(
+    'type' => 'int',
+    'not null' => TRUE,
+    'initial' => 0,
+    'description' => 'The field conditional states group id.',
+  );
+  db_add_field('field_conditional_state', 'group_id', $spec);
+
+  $spec = array(
+    'type' => 'text',
+    'not null' => TRUE,
+    'initial' => '',
+    'description' => 'The trigger value.',
+  );
+  db_add_field('field_conditional_state', 'trigger_value', $spec);
+
+  $spec = array(
+    'type' => 'varchar',
+    'length' => '15',
+    'not null' => TRUE,
+    'initial' => '',
+    'description' => 'The trigger state.',
+  );
+  db_add_field('field_conditional_state', 'trigger_state', $spec);
+
+  // Change control_field field properties.
+  $spec = array(
+    'type' => 'varchar',
+    'length' => '255',
+    'not null' => TRUE,
+    'description' => 'The control field name.',
+  );
+  db_change_field('field_conditional_state', 'control_field', 'control_field', $spec);
+
+  // Add new states group table.
+  $schema['field_conditional_states_group'] = array(
+    'fields' => array(
+      'group_id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'The internal identifier.',
+      ),
+      'state' => array(
+        'type' => 'varchar',
+        'length' => '15',
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'entity_type' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'bundle' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'field_name' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'type' => array(
+        'type' => 'varchar',
+        'length' => '3',
+        'not null' => TRUE,
+        'description' => 'The logical connection.',
+      ),
+    ),
+    'primary key' => array('group_id'),
+  );
+
+  db_create_table('field_conditional_states_group', $schema['field_conditional_states_group']);
+
+  $bundle_data = field_info_bundles();
+  // Upgrade settings data from 7.x-1.x to 7.x-2.x.
+  $fields = db_query("SELECT * FROM {field_conditional_state}");
+  foreach ($fields as $field) {
+    // In case FCS was used for a non-node we have to use the right entity type
+    // so we have to search for the bundle within the existing entity types
+    // if more than one entity type has a bundle with the same name
+    // we can't decide which one is the right bundle
+    // (so we'll simply take the first found entity type).
+    $entity_type = 'node';
+    foreach ($bundle_data as $type => $bundles) {
+      if (isset($bundles[$field->bundle])) {
+        $entity_type = $type;
+        break;
+      }
+    }
+
+    $group_id = db_insert('field_conditional_states_group')
+      ->fields(array(
+        'state' => $field->state,
+        'entity_type' => $entity_type,
+        'bundle' => $field->bundle,
+        'field_name' => $field->field_name,
+        'type' => $field->condition_type,
+      ))
+      ->execute();
+
+    $control_field_info = field_info_field($field->control_field);
+
+    $trigger_values = array_keys(unserialize($field->trigger_values));
+    foreach ($trigger_values as $trigger_value) {
+      $trigger_state = 'value';
+      if ($control_field_info['type'] == 'list_boolean') {
+        $trigger_state = ($trigger_value ? 'checked' : 'unchecked');
+      }
+
+      db_insert('field_conditional_state')
+      ->fields(array(
+        'group_id' => $group_id,
+        'control_field' => $field->control_field,
+        'trigger_state' => $trigger_state,
+        'trigger_value' => $trigger_value,
+        // We are going to delete the following fields later,
+        // but we have to provide a value for them because
+        // no NULL values are allowed.
+        'field_name' => '',
+        'state' => '',
+        'bundle' => '',
+        'trigger_values' => '',
+        'condition_type' => '',
+      ))
+      ->execute();
+    }
+    db_delete('field_conditional_state')
+      ->condition('id', $field->id)
+      ->execute();
+  }
+
+  // Remove no longer needed fields.
+  db_drop_field('field_conditional_state', 'field_name');
+  db_drop_field('field_conditional_state', 'state');
+  db_drop_field('field_conditional_state', 'bundle');
+  db_drop_field('field_conditional_state', 'trigger_values');
+  db_drop_field('field_conditional_state', 'condition_type');
+
+  return t('Upgraded module settings from 7.x-1.x to 7.x-2.x.');
+}
+
+/**
+ * Updates field conditional states permission name.
+ */
+function field_conditional_state_update_7201() {
+  db_update('role_permission')
+  ->fields(array('permission' => 'administer field_conditional_state'))
+  ->condition('permission', 'administer field conditional states')
+  ->execute();
+}
+
+/**
+ * Converts trigger value data of multivalue fields.
+ */
+function field_conditional_state_update_7202() {
+  module_load_include('module', 'field_conditional_state');
+  $query = db_select('field_conditional_state', 'f')
+  ->fields('f', array('id', 'control_field', 'trigger_value'))
+  ->fields('g', array('entity_type', 'bundle'))
+  ->where("f.trigger_state = 'value' OR f.trigger_state = '!value'");
+
+  $query->leftJoin('field_conditional_states_group', 'g', 'g.group_id = f.group_id');
+  $data = $query->execute();
+
+  while ($state = $data->fetchAssoc()) {
+    $instance = field_info_instance($state['entity_type'], $state['control_field'], $state['bundle']);
+
+    if (field_conditional_state_multi_trigger_value_is_supported($instance['widget']['type'])) {
+      db_update('field_conditional_state')
+      ->fields(array('trigger_value' => serialize((array) $state['trigger_value'])))
+      ->condition('id', $state['id'])
+      ->execute();
+    }
+  }
+}
