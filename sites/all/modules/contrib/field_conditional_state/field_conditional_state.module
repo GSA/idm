@@ -1,0 +1,976 @@
+<?php
+/**
+ * @file
+ * Main functions of this module.
+ */
+
+/**
+ * Returns the conditional states which match the given conditions.
+ *
+ * @param string $entity_type
+ *   the entity type
+ * @param string $bundle
+ *   the bundle
+ * @param string $field_name
+ *   the field_name
+ *
+ * @return array
+ *   array of conditional states (as associative arrays)
+ */
+function _field_conditional_state_get_conditional_states($entity_type, $bundle, $field_name) {
+  // Check for cached results.
+  $records = &drupal_static(__FUNCTION__);
+  if (empty($records)) {
+    $records = array();
+  }
+
+  if (isset($records[$entity_type][$bundle][$field_name])) {
+    return $records[$entity_type][$bundle][$field_name];
+  }
+  else {
+    $groups = db_select('field_conditional_states_group', 'g')
+      ->fields('g')
+      ->condition('entity_type', $entity_type)
+      ->condition('bundle', $bundle)
+      ->condition('field_name', $field_name)
+      ->execute();
+
+    $data = array();
+    while ($group = $groups->fetchAssoc()) {
+      $tmp = &$data[];
+      $tmp = $group;
+      $tmp['states'] = array();
+
+      $states = db_select('field_conditional_state', 's')
+        ->fields('s')
+        ->condition('group_id', $group['group_id'])
+        ->orderBy('control_field', 'ASC')
+        ->execute();
+
+      while ($state = $states->fetchAssoc()) {
+        $tmp['states'][] = $state;
+      }
+
+    }
+    $records[$entity_type][$bundle] = $data;
+    return $data;
+  }
+}
+
+/**
+ * Returns the path to the actual input element within the $element array.
+ * 
+ * @return array
+ *   array with two keys:
+ *   -form_elements: "Path" to the actual input/select elements within the array
+ *      The first element here is used as actual trigger element.
+ *   -field_data: Path to the fields data (#entity_type, #bundle, #field_name)
+ */
+function _field_conditional_state_get_element_settings($widget_type = NULL) {
+  $cached = &drupal_static(__FUNCTION__, array());
+  $settings = array();
+  if (!empty($cached)) {
+    $settings = $cached;
+  }
+  else {
+    $settings_default = array(
+      'form_elements' => array(),
+      'field_data' => array(),
+      // If reprocess_from_root is set to true, the field will be reprocessed
+      // during the after_build phase of the form root.
+      'reprocess_from_root' => FALSE,
+      'field_states' => array(),
+      'trigger_states' => array(),
+      'trigger_value_widget' => '_field_conditional_state_default_trigger_value_widget',
+      'trigger_value_submit' => '_field_conditional_state_default_trigger_value_submit',
+    );
+
+    $settings['enfield_widget'] = $settings_default;
+    $settings['enfield_widget']['form_elements'][] = array('fid');
+    $settings['enfield_widget']['field_data'] = array('fid');
+    $settings['enfield_widget']['reprocess_from_root'] = TRUE;
+
+    $settings['entityreference_autocomplete'] = $settings_default;
+    $settings['entityreference_autocomplete']['form_elements'][] = array('target_id');
+    $settings['entityreference_autocomplete']['field_data'] = array('target_id');
+    $settings['entityreference_autocomplete']['reprocess_from_root'] = TRUE;
+
+    $settings['entityreference_autocomplete_tags'] = $settings_default;
+    $settings['entityreference_autocomplete_tags']['form_elements'][] = array();
+
+    $settings['email_textfield'] = $settings_default;
+    $settings['email_textfield']['form_elements'][] = array('email');
+    $settings['email_textfield']['field_data'] = array();
+
+    $settings['file_generic'] = $settings_default;
+    $settings['file_generic']['form_elements'][] = array(0, 'upload');
+    $settings['file_generic']['field_data'] = array(0);
+    $settings['file_generic']['reprocess_from_root'] = TRUE;
+
+    $settings['image_image'] = $settings_default;
+    $settings['image_image']['form_elements'][] = array(0, 'upload');
+    $settings['image_image']['field_data'] = array(0);
+    $settings['image_image']['reprocess_from_root'] = TRUE;
+
+    $settings['starrating_rating_widget'] = $settings_default;
+    $settings['starrating_rating_widget']['form_elements'][] = array('value');
+    $settings['starrating_rating_widget']['field_data'] = array('value');
+
+    $settings['number'] = $settings_default;
+    $settings['number']['form_elements'][] = array('value');
+    $settings['number']['field_data'] = array('value');
+    $settings['number']['reprocess_from_root'] = TRUE;
+
+    $settings['options_buttons'] = $settings_default;
+    $settings['options_buttons']['form_elements'][] = array();
+
+    $settings['options_onoff'] = $settings_default;
+    $settings['options_onoff']['form_elements'][] = array();
+
+    $settings['options_select'] = $settings_default;
+    $settings['options_select']['form_elements'][] = array();
+    $settings['options_select']['trigger_value_widget'] = '_field_conditional_state_select_trigger_value_widget';
+    $settings['options_select']['trigger_value_submit'] = '_field_conditional_state_select_trigger_value_submit';
+
+    $settings['text_textfield'] = $settings_default;
+    $settings['text_textfield']['form_elements'][] = array('value');
+    $settings['text_textfield']['field_data'] = array('value');
+    $settings['text_textfield']['reprocess_from_root'] = TRUE;
+
+    $settings['url_external'] = $settings_default;
+    $settings['url_external']['form_elements'][] = array('value');
+    $settings['url_external']['field_data'] = array();
+
+    $settings['video_embed_field_video'] = $settings_default;
+    $settings['video_embed_field_video']['form_elements'][] = array('video_url');
+    $settings['video_embed_field_video']['field_data'] = array();
+
+    $settings['taxonomy_autocomplete'] = $settings_default;
+    $settings['taxonomy_autocomplete']['form_elements'][] = array();
+
+    $settings['text_textarea'] = $settings_default;
+    $settings['text_textarea']['form_elements'][] = array('value');
+    $settings['text_textarea']['reprocess_from_root'] = TRUE;
+
+    $settings['text_textarea_with_summary'] = $settings_default;
+    $settings['text_textarea_with_summary']['form_elements'][] = array('value');
+    $settings['text_textarea_with_summary']['form_elements'][] = array('format');
+    $settings['text_textarea_with_summary']['form_elements'][] = array('summary');
+    $settings['text_textarea_with_summary']['reprocess_from_root'] = TRUE;
+
+    foreach ($settings as $field => &$data) {
+      $data['field_states'] = _field_conditional_state_get_field_states($field);
+      $data['trigger_states'] = _field_conditional_state_get_trigger_states($field);
+    }
+
+    drupal_alter('field_conditional_state_settings', $settings);
+
+    foreach ($settings as &$data) {
+      if (!isset($data['field_states'])) {
+        $data['field_states'] = array();
+      }
+      else {
+        $data['field_states'] = _field_conditional_state_create_label_mapping($data['field_states']);
+      }
+
+      if (!isset($data['trigger_states'])) {
+        $data['trigger_states'] = array();
+      }
+      else {
+        $data['trigger_states'] = _field_conditional_state_create_label_mapping($data['trigger_states']);
+      }
+    }
+    $cached = $settings;
+  }
+
+  if (is_null($widget_type) || empty($settings[$widget_type])) {
+    return $settings;
+  }
+  else {
+    return $settings[$widget_type];
+  }
+}
+
+/**
+ * Creates a mapping from state names to the corresponding label.
+ *
+ * @param array $input
+ *   flat array (e.g. array('enabled', 'disabled'))
+ * 
+ * @return array
+ *   mapping based on the $input parameter
+ */
+function _field_conditional_state_create_label_mapping($input) {
+  $mapping = array(
+    'enabled' => t('Enabled'),
+    'disabled' => t('Disabled'),
+    'required' => t('Required'),
+    'optional' => t('Optional'),
+    'visible' => t('Visible'),
+    'invisible' => t('Invisible'),
+    'checked' => t('Checked'),
+    'unchecked' => t('Unchecked'),
+    'empty' => t('Empty'),
+    'filled' => t('Filled'),
+    'value' => t('Value is'),
+  );
+  $output = array();
+  foreach ($input as $val) {
+    $output[$val] = $mapping[$val];
+  }
+
+  return $output;
+}
+
+/**
+ * Checks whether the given widget is supported as control field.
+ *
+ * @param string $widget
+ *   a widget name to check for support
+ *
+ * @return array/boolean
+ *   the whitelist as array if no explicit widget is given as argument OR
+ *   a boolean indicating the support of the given widget 
+ */
+function field_conditional_state_control_field_is_supported($widget = FALSE) {
+  $settings = _field_conditional_state_get_element_settings($widget);
+  if (!$widget) {
+    $whitelist = array();
+    foreach ($settings as $field => $data) {
+      if (!empty($settings[$field]['trigger_states'])) {
+        $whitelist[] = $field;
+      }
+    }
+  }
+  else {
+    return !empty($settings['trigger_states']);
+  }
+}
+
+/**
+ * Checks whether the given widget is supported as controled field.
+ *
+ * @param string $widget
+ *   a widget name to check for support
+ *
+ * @return array/boolean
+ *   the whitelist as array if no explicit widget is given as argument OR
+ *   a boolean indicating the support of the given widget 
+ */
+function field_conditional_state_controled_field_is_supported($widget = FALSE) {
+  $settings = _field_conditional_state_get_element_settings($widget);
+  if (!$widget) {
+    $whitelist = array();
+    foreach ($settings as $field => $data) {
+      if (!empty($settings[$field]['field_states'])) {
+        $whitelist[] = $field;
+      }
+    }
+  }
+  else {
+    return !empty($settings['field_states']);
+  }
+}
+
+/**
+ * Checks whether a widget supports multiple trigger values within one state.
+ *
+ * @param string $widget
+ *   a widget name to check for support
+ *
+ * @return array/boolean
+ *   the whitelist as array if no explicit widget is given as argument OR
+ *   a boolean indicating the support of the given widget
+ */
+function field_conditional_state_multi_trigger_value_is_supported($widget = FALSE) {
+  $list = array(
+    'options_buttons',
+    'options_select',
+  );
+  if (!$widget) {
+    return $list;
+  }
+  else {
+    return in_array($widget, $list);
+  }
+}
+
+/**
+ * Returns the available states for a given field type.
+ *
+ * @param string $type
+ *   the field type
+ */
+function _field_conditional_state_get_field_states($type) {
+  $states = array();
+
+  switch ($type) {
+    case 'email_textfield':
+    case 'enfield_widget':
+    case 'entityreference_autocomplete':
+    case 'entityreference_autocomplete_tags':
+    case 'file_generic':
+    case 'image_image':
+    case 'number':
+    case 'options_buttons':
+    case 'options_select':
+    case 'starrating_rating_widget':
+    case 'taxonomy_autocomplete':
+    case 'text_textarea':
+    case 'text_textarea_with_summary':
+    case 'text_textfield':
+    case 'url_external':
+    case 'video_embed_field_video':
+      $states = array(
+        'enabled',
+        'disabled',
+        'required',
+        'optional',
+        'visible',
+        'invisible',
+      );
+      break;
+
+    case 'options_onoff':
+      $states = array(
+        'enabled',
+        'disabled',
+        'required',
+        'optional',
+        'visible',
+        'invisible',
+        'checked',
+        'unchecked',
+      );
+      break;
+  }
+
+  return $states;
+}
+
+/**
+ * Returns the triggerable states for a given field type.
+ *
+ * @param string $type
+ *   the field type
+ */
+function _field_conditional_state_get_trigger_states($type) {
+  $states_triggerable = array();
+
+  switch ($type) {
+    case 'file_generic':
+    case 'image_image':
+      $states_triggerable = array('empty', 'filled');
+      break;
+
+    case 'email_textfield':
+    case 'enfield_widget':
+    case 'entityreference_autocomplete':
+    case 'entityreference_autocomplete_tags':
+    case 'number':
+    case 'options_select':
+    case 'starrating_rating_widget':
+    case 'taxonomy_autocomplete':
+    case 'text_textfield':
+    case 'url_external':
+    case 'video_embed_field_video':
+      $states_triggerable = array('empty', 'filled', 'value');
+      break;
+
+    case 'options_onoff':
+      $states_triggerable = array('checked', 'unchecked');
+      break;
+  }
+
+  return $states_triggerable;
+}
+
+/**
+ * Finds the actual element and adds the #pre_render callback to it.
+ *
+ * @param array $element
+ *   a form element
+ * @param array $form_state
+ *   the current form state
+ *
+ * @return array
+ *   the processed element
+ */
+function field_conditional_state_element_after_build($element, &$form_state) {
+  if (isset($element['#field_conditional_state_widget_type']) && (!isset($element['#access']) || $element['#access'])) {
+
+    // Mapping the entity_type, bundle and field_name to their actual HTML ID
+    // for later use in the #pre_render callback.
+    $ids = &drupal_static(__FUNCTION__, array());
+
+    // Get the location of the actual input element
+    // and the location of the field information (#entity_type, etc).
+    $element_settings = _field_conditional_state_get_element_settings($element['#field_conditional_state_widget_type']);
+
+    $form_elements = array();
+    foreach ($element_settings['form_elements'] as $path) {
+      $form_elements[] = &drupal_array_get_nested_value($element, $path);
+    }
+    $field_data = drupal_array_get_nested_value($element, $element_settings['field_data']);
+
+    // Set the #pre_render callbacks based on the active states for the element.
+    // For the top level ($element), if a visible/invisible state is active
+    // and for the actual elements ($form_elements), if another state is active.
+    $states = _field_conditional_state_get_conditional_states($field_data['#entity_type'], $field_data['#bundle'], $field_data['#field_name']);
+    $visibility_state_active = FALSE;
+    $direct_state_active = FALSE;
+    // Check what kind of states are active.
+    foreach ($states as $state) {
+      if (in_array($state['state'], array('visible', 'invisible'))) {
+        $visibility_state_active = TRUE;
+      }
+      else {
+        $direct_state_active = TRUE;
+      }
+      if ($direct_state_active && $visibility_state_active) {
+        break;
+      }
+    }
+
+    // Add the #pre_render callbacks.
+    if ($visibility_state_active) {
+      if ($element_settings['reprocess_from_root']) {
+        $actions = array(
+          'path' => array($element['#array_parents'][0]),
+          'set_pre_render' => '_field_conditional_state_add_visibility_states',
+          'field_name' => $field_data['#field_name'],
+        );
+        _field_conditional_state_set_form_root_actions($actions);
+      }
+      else {
+        if (empty($element['#pre_render'])) {
+          $element['#pre_render'] = array();
+        }
+        $element['#pre_render'][] = '_field_conditional_state_add_visibility_states';
+        $element['#field_conditional_state'] = array();
+        $element['#field_conditional_state']['entity_type'] = $field_data['#entity_type'];
+        $element['#field_conditional_state']['bundle'] = $field_data['#bundle'];
+        $element['#field_conditional_state']['field_name'] = $field_data['#field_name'];
+      }
+    }
+    if ($direct_state_active) {
+      foreach ($form_elements as &$form_element) {
+        if (empty($form_element['#pre_render'])) {
+          $form_element['#pre_render'] = array();
+        }
+        $form_element['#pre_render'][] = '_field_conditional_state_add_direct_states';
+        $form_element['#field_conditional_state'] = array();
+        $form_element['#field_conditional_state']['entity_type'] = $field_data['#entity_type'];
+        $form_element['#field_conditional_state']['bundle'] = $field_data['#bundle'];
+        $form_element['#field_conditional_state']['field_name'] = $field_data['#field_name'];
+      }
+    }
+
+    if (field_conditional_state_control_field_is_supported($element['#field_conditional_state_widget_type'])) {
+      $ids[$field_data['#entity_type'] . '__' . $field_data['#bundle'] . '__' . $field_data['#field_name']] = $form_elements[0]['#id'];
+    }
+  }
+
+  return $element;
+}
+
+/**
+ * Collects actions that have to be executed on the root level of the form.
+ */
+function _field_conditional_state_set_form_root_actions($actions) {
+  $data = &drupal_static(__FUNCTION__, array());
+  $data[] = $actions;
+}
+
+/**
+ * Pre-render callback.
+ *
+ * Adds the #states visible and invisible to the element
+ */
+function _field_conditional_state_add_visibility_states($element) {
+  $fcs_data = $element['#field_conditional_state'];
+  $states = _field_conditional_state_get_conditional_states($fcs_data['entity_type'], $fcs_data['bundle'], $fcs_data['field_name']);
+  _field_conditional_state_build_states_array($element, $states, array('visible', 'invisible'));
+
+  return $element;
+}
+
+/**
+ * Pre-render callback.
+ *
+ * Adds the #states enabled, disabled, required and optional to the element
+ */
+function _field_conditional_state_add_direct_states($element) {
+  $fcs_data = $element['#field_conditional_state'];
+  $states = _field_conditional_state_get_conditional_states($fcs_data['entity_type'], $fcs_data['bundle'], $fcs_data['field_name']);
+  $state_types = array(
+    'enabled',
+    'disabled',
+    'required',
+    'optional',
+    'checked',
+    'unchecked',
+  );
+  _field_conditional_state_build_states_array($element, $states, $state_types);
+
+  return $element;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function field_conditional_state_menu() {
+  $items = array();
+  foreach (entity_get_info() as $entity_type => $entity_info) {
+    if ($entity_info['fieldable']) {
+      foreach ($entity_info['bundles'] as $bundle_name => $bundle_info) {
+        if (isset($bundle_info['admin'])) {
+          // Extract path information from the bundle.
+          $path = $bundle_info['admin']['path'];
+          if (isset($bundle_info['admin']['bundle argument'])) {
+            $bundle_arg = $bundle_info['admin']['bundle argument'];
+            $bundle_pos = (string) $bundle_arg;
+          }
+          else {
+            $bundle_arg = $bundle_name;
+            $bundle_pos = '0';
+          }
+          $field_position = count(explode('/', $path)) + 1;
+
+          $items[$path . '/fields/%field_ui_menu/field_conditional_state'] = array(
+            'load arguments' => array(
+              $entity_type,
+              $bundle_arg,
+              $bundle_pos,
+              '%map',
+            ),
+            'title' => 'Conditional states',
+            'page callback' => 'drupal_get_form',
+            'page arguments' => array(
+              'field_conditional_state_settings_form',
+              $field_position,
+            ),
+            'type' => MENU_LOCAL_TASK,
+            'access arguments' => array('administer field_conditional_state'),
+            'weight' => 4,
+            'file' => 'field_conditional_state.admin.inc',
+          );
+        }
+      }
+    }
+  }
+  $items['admin/reports/fields/list'] = array(
+    'title' => 'List',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['admin/reports/fields/conditional-states'] = array(
+    'title' => 'Conditional states',
+    'description' => 'Overview of fields on all entity types with a conditional state.',
+    'page callback' => 'field_conditional_state_fields_list',
+    'access arguments' => array('administer field_conditional_state'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 0,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function field_conditional_state_permission() {
+  return array(
+    'administer field_conditional_state' => array(
+      'title' => t('Administer field conditional states'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ *
+ * Ensures the call to
+ * field_conditional_state_link_form_field_ui_field_overview_form_alter()
+ * function runs after any invocation of the form_alter() by other modules, e.g.
+ * Field Group module.
+ */
+function field_conditional_state_module_implements_alter(&$implementations, $hook) {
+  if ($hook == 'form_alter' && array_key_exists('field_conditional_state', $implementations)) {
+    $group = $implementations['field_conditional_state'];
+    unset($implementations['field_conditional_state']);
+    $implementations['field_conditional_state'] = $group;
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for field_ui_field_overview_form().
+ */
+function field_conditional_state_form_field_ui_field_overview_form_alter(&$form, &$form_state) {
+  $entity_type = $form['#entity_type'];
+  $bundle = $form['#bundle'];
+
+  $bundle = field_extract_bundle($entity_type, $bundle);
+  $admin_path = _field_ui_bundle_admin_path($entity_type, $bundle);
+
+  $table = &$form['fields'];
+
+  // Find the operations column and number of existing operations, because
+  // other modules may alter the form to add operations before or after us.
+  foreach ($table['#header'] as $key => $header) {
+    if (is_array($header) && !empty($header['data'])) {
+      $op_col = $key;
+      $op_count = $header['colspan'];
+    }
+  }
+  // Increment the colspan.
+  $table['#header'][$op_col]['colspan'] = $op_count + 1;
+
+  $instances = field_info_instances($entity_type, $bundle);
+
+  foreach (element_children($table) as $key) {
+    if (array_key_exists($key, $instances)) {
+      $admin_field_path = $admin_path . '/fields/' . $instances[$key]['field_name'];
+      $table[$key]['field_conditional_state'] = array(
+        '#type' => 'link',
+        '#title' => t('States'),
+        '#href' => $admin_field_path . '/field_conditional_state',
+        '#options' => array('attributes' => array('title' => t('Manage field conditional state rules.'))),
+      );
+    }
+    else {
+      $table[$key]['field_conditional_state'] = array('#markup' => '');
+    }
+  }
+}
+
+/**
+ * Implements hook_field_widget_form_alter().
+ */
+function field_conditional_state_field_widget_form_alter(&$element, &$form_state, $context) {
+
+  // The fields supported as control fields are a subset of the fields
+  // supported as controled fields, so we only have to check
+  // the controled field whitelist here.
+  if (field_conditional_state_controled_field_is_supported($context['instance']['widget']['type'])) {
+    $element['#after_build'][] = 'field_conditional_state_element_after_build';
+    $element['#field_conditional_state_widget_type'] = $context['instance']['widget']['type'];
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function field_conditional_state_form_alter(&$form, &$form_state, $form_id) {
+  if (isset($form['#entity_type']) && isset($form['#bundle'])) {
+    if (!isset($form['#after_build'])) {
+      $form['#after_build'] = array();
+    }
+    $form['#after_build'][] = '_field_conditional_state_form_after_build';
+  }
+}
+
+/**
+ * After build callback for the whole form.
+ *
+ * Processes actions for elements that can't be done within
+ * field_conditional_state_element_after_build.
+ */
+function _field_conditional_state_form_after_build($form, $form_state) {
+  $actions = drupal_static('_field_conditional_state_set_form_root_actions', array());
+  foreach ($actions as $action) {
+    $element = &drupal_array_get_nested_value($form, $action['path']);
+
+    if (isset($action['set_pre_render'])) {
+      if (!isset($element['#pre_render'])) {
+        $element['#pre_render'] = array();
+      }
+      $element['#pre_render'][] = $action['set_pre_render'];
+      $element['#field_conditional_state'] = array(
+        'entity_type' => $form['#entity_type'],
+        'bundle' => $form['#bundle'],
+        'field_name' => $action['field_name'],
+      );
+    }
+  }
+  return $form;
+}
+
+/**
+ * Adds the #states subarray to the given element based on the given conditions.
+ */
+function _field_conditional_state_build_states_array(&$element, $groups, $state_types) {
+  if (count($groups) > 0) {
+
+    // See description in field_conditional_state_element_after_build
+    $ids = &drupal_static('field_conditional_state_element_after_build');
+
+    $element['#states'] = array();
+
+    foreach ($groups as $group) {
+      if (!in_array($group['state'], $state_types)) {
+        continue;
+      }
+
+      if (empty($element['#states'][$group['state']])) {
+        $element['#states'][$group['state']] = array();
+      }
+
+      /*
+       * And conditions are added to the top level,
+       * but or/xor conditions are added into a second level
+       * so we have to distinguish there between 'and' and 'or/xor'.
+       */
+      switch ($group['type']) {
+        case 'and':
+          $current = &$element['#states'][$group['state']];
+          break;
+
+        case 'or':
+        case 'xor':
+          $current = &$element['#states'][$group['state']][];
+          $current = array();
+          if ($group['type'] == 'xor') {
+            $current[] = 'xor';
+          }
+          break;
+      }
+
+      foreach ($group['states'] as $state) {
+        $control_key = $group['entity_type'] . '__' . $group['bundle'] . '__' . $state['control_field'];
+        if (!isset($ids[$control_key])) {
+          continue;
+        }
+        $control_id = $ids[$control_key];
+        $triggers = array();
+        if ($state['trigger_state'] == 'value' || $state['trigger_state'] == '!value') {
+
+          // If we have a multi trigger value here, we create a state per value.
+          $trigger_values = @unserialize($state['trigger_value']);
+          if ($trigger_values !== FALSE) {
+            foreach ($trigger_values as $val) {
+              $triggers[] = array($state['trigger_state'] => $val);
+            }
+          }
+          else {
+            $triggers[] = array($state['trigger_state'] => $state['trigger_value']);
+          }
+        }
+        else {
+          $triggers[] = array($state['trigger_state'] => TRUE);
+        }
+
+        foreach ($triggers as $trigger) {
+          if ($group['type'] == 'and') {
+            // Add condition to the top level.
+            $current['#' . $control_id] = $trigger;
+          }
+          else {
+            // For (x)or conditions $current already points to the second level,
+            // but each single condition gets its own third level
+            // within the array.
+            $tmp = &$current[];
+            $tmp['#' . $control_id] = $trigger;
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Returns the allowed values for fields using options_select.
+ */
+function _field_conditional_states_allowed_values($field) {
+  return call_user_func($field['module'] . '_allowed_values', $field);
+}
+
+/**
+ * Implements hook_form_FORMID_alter() for field_ui_widget_type_form().
+ */
+function field_conditional_state_form_field_ui_widget_type_form_alter(&$form, &$form_state) {
+  $available_widgets = $form['basic']['widget_type']['#options'];
+  $removed_widget_labels = array();
+
+  // First get the active trigger states for this field.
+  $stmt = db_select('field_conditional_state', 'f')
+  ->fields('f', array('trigger_state'))
+  ->condition('f.control_field', $form['#field_name'])
+  ->condition('g.bundle', $form['#bundle'])
+  ->condition('g.entity_type', $form['#entity_type'])
+  ->distinct();
+
+  $stmt->leftJoin('field_conditional_states_group', 'g', 'g.group_id = f.group_id');
+
+  $res = $stmt->execute();
+  $active_trigger_states = $res->fetchCol();
+
+  // Now get the states affecting this field.
+  $res = db_select('field_conditional_states_group', 'g')
+  ->fields('g', array('state'))
+  ->condition('g.entity_type', $form['#entity_type'])
+  ->condition('g.bundle', $form['#bundle'])
+  ->condition('g.field_name', $form['#field_name'])
+  ->distinct()
+  ->execute();
+
+  $active_states = $res->fetchCol();
+
+  // Remove all widgets from the select list, which don't support
+  // ALL of the currently active conditional states.
+  foreach ($available_widgets as $widget_name => $widget_label) {
+    if ($form['basic']['widget_type']['#default_value'] == $widget_name) {
+      // The currently active widget should always support all active states.
+      continue;
+    }
+
+    $settings = _field_conditional_state_get_element_settings($widget_name);
+    $possible_trigger_states = array_keys($settings['trigger_states']);
+    $possible_states = array_keys($settings['field_states']);
+
+    $compatible_as_control_field = count(array_intersect($active_trigger_states, $possible_trigger_states)) == count($active_trigger_states);
+    $compatible_as_controled_field = count(array_intersect($active_states, $possible_states)) == count($active_states);
+
+    if (!$compatible_as_control_field || !$compatible_as_controled_field) {
+      unset($form['basic']['widget_type']['#options'][$widget_name]);
+      $removed_widget_labels[] = $widget_label;
+    }
+  }
+
+  if (count($removed_widget_labels) > 0) {
+    $list = array(
+      '#theme' => 'item_list',
+      '#items' => array_map('check_plain', $removed_widget_labels),
+      '#title' => '',
+      '#type' => 'ul',
+      '#attributes' => array(),
+    );
+    $widget_list = drupal_render($list);
+
+    drupal_set_message(t("The following widgets were removed from the selection, because they don't support at least one of the active conditional states: !list", array('!list' => $widget_list)), 'warning');
+  }
+}
+
+/**
+ * Implements hook_field_delete_instance().
+ */
+function field_conditional_state_field_delete_instance($instance) {
+  $query = db_query("SELECT group_id, field_name FROM {field_conditional_states_group} WHERE entity_type = :type AND bundle = :bundle", array(':type' => $instance['entity_type'], ':bundle' => $instance['bundle']));
+
+  while ($record = $query->fetchAssoc()) {
+    $delete = db_delete('field_conditional_state');
+    $delete->condition('group_id', $record['group_id']);
+
+    // If the current groups field name is equal to the deleted field name
+    // delete the group and ALL associated states
+    // otherwise delete only the conditions
+    // where the deleted field is the control field.
+    if ($record['field_name'] == $instance['field_name']) {
+      db_delete('field_conditional_states_group')
+        ->condition('group_id', $record['group_id'])
+        ->execute();
+    }
+    else {
+      $delete->condition('control_field', $record['field_name']);
+    }
+
+    $delete->execute();
+  }
+}
+
+/**
+ * Get list of conditional states for all enabled fields.
+ */
+function field_conditional_state_get_states() {
+  $conditional_states = &drupal_static(__FUNCTION__);
+  if (!isset($conditional_states)) {
+    $conditional_states = array();
+    $groups = db_query("SELECT * FROM {field_conditional_states_group}");
+    foreach ($groups as $group) {
+      $temp_group = (array) $group;
+      $states = db_query("SELECT * FROM {field_conditional_state} WHERE group_id = :gid", array(':gid' => $group->group_id));
+      foreach ($states as $state) {
+        $temp_group['states'][] = (array) $state;
+      }
+      if (isset($temp_group['states'])) {
+        $conditional_states[] = $temp_group;
+      }
+    }
+  }
+  return $conditional_states;
+}
+
+/**
+ * Menu callback; lists all conditional state-enabled fields.
+ */
+function field_conditional_state_fields_list() {
+  $conditional_states = field_conditional_state_get_states();
+  $bundle_info = field_info_bundles();
+
+  // Table headers.
+  $header = array(
+    t('Field name'),
+    t('State'),
+    t('Control fields'),
+    t('Used in'),
+  );
+
+  // Table rows.
+  $rows = array();
+  foreach ($conditional_states as $state) {
+    $temp_row = array();
+
+    // Add field.
+    $temp_row['data'][0] = $state['field_name'];
+
+    // Add state.
+    $temp_row['data'][1] = $state['state'];
+
+    // Add control fields.
+    $temp_row['data'][2]['logic'] = $state['type'];
+    foreach ($state['states'] as $field) {
+      $negated = FALSE;
+      if (substr($field['trigger_state'], 0, 1) == '!') {
+        $negated = TRUE;
+        $field['trigger_state'] = substr($field['trigger_state'], 1);
+      }
+      $value = '';
+      if ($field['trigger_state'] == 'value') {
+        if ($trigger_value = @unserialize($field['trigger_value'])) {
+          foreach ($trigger_value as $value) {
+            $temp_row['data'][2][] = $field['control_field'] . ($negated ? ' != ' : ' = ') . $value;
+          }
+        }
+        else {
+          $temp_row['data'][2][] = $field['control_field'] . ($negated ? ' != ' : ' = ') . $field['trigger_value'];
+        }
+      }
+      else {
+        $temp_row['data'][2][] = $field['control_field'] . ' is ' . ($negated ? 'NOT ' : '') . $field['trigger_state'];
+      }
+    }
+
+    // Add bundle.
+    $admin_path = NULL;
+    if (module_exists('field_ui')) {
+      $admin_path = _field_ui_bundle_admin_path($state['entity_type'], $state['bundle']);
+    }
+    $temp_row['data'][3] = $admin_path ? l($bundle_info[$state['entity_type']][$state['bundle']]['label'], $admin_path . '/fields/' . $state['field_name'] . '/field_conditional_state') : $bundle_info[$state['entity_type']][$state['bundle']]['label'];
+
+    $rows[] = $temp_row;
+  }
+
+  // Collect all control fields into a string.
+  foreach ($rows as $id => $cell) {
+    $logic = drupal_strtoupper($cell['data'][2]['logic']);
+    unset($cell['data'][2]['logic']);
+    $rows[$id]['data'][2] = implode('<br />' . $logic . '<br />', $cell['data'][2]);
+  }
+
+  $output = theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+    'empty' => t('No fields have conditional states yet.'),
+  ));
+
+  return $output;
+}

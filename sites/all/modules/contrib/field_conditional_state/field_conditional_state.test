@@ -1,0 +1,40 @@
+<?php
+/**
+ * @file
+ * Tests for Field Conditional States
+ *
+ * Currently there aren't any tests.
+ */
+
+/**
+ * Consistency test cases for Field Conditional State
+ */
+class FieldConditionalStateTestCase extends DrupalWebTestCase {
+ 
+
+  /**
+   * Implements getInfo().
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('Test Cases'),
+      'description' => t('Tests for Field Conditional State.'),
+      'group' => t('Field Conditional State'),
+    );
+  }
+
+  /**
+   * Set up the needed modules.
+   */
+  public function setUp() {
+    parent::setUp('field_conditional_state');
+  }
+
+  /**
+   * Test field settings.
+   */
+  public function testFieldSettings() {
+    $this->assertTrue(TRUE, 'Nothing to test here...');
+  }
+}
+?>
