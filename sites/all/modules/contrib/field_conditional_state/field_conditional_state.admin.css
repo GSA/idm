@@ -1,0 +1,7 @@
+.field_conditional_state_settings_new_row {
+  border-top: 1px dashed black;
+}
+
+.field_conditional_state_invalid_state {
+  background-color:#FAC6C6;
+}

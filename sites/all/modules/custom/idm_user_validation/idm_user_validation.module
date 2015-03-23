@@ -17,7 +17,8 @@ function idm_user_validation_form_alter(&$form, &$form_state, $form_id){
      $form['#validate'][] = 'idm_user_validation_validate_register_form';
 }
 
-function idm_user_validation_validate_register_form(&$form, &$form_state,$form_id) {
+function idm_user_validation_validate_register_form(&$form, &$form_state) {
+    $form_id = $form['form_id']["#value"];
     $email = $form_state['values']['mail'];
     $typeofuser=$form_state['values']['field_type_of_user']['und'][0]['value'];
     if ($form_id == 'user_register_form') {
@@ -25,17 +26,27 @@ function idm_user_validation_validate_register_form(&$form, &$form_state,$form_i
              form_set_error('mail', t('Domain not allowed, Contact the site administrator.'));
         }
     }
-       if($typeofuser=="Publisher") {
+   if($typeofuser=="Publisher") {
         $tname = $form_state['values']['field_organization'];
         $name= $tname['und'][0]['value'];
         $validate=taxonomy_get_term_by_name($name);
-        if(!empty($validate)){
-            form_set_error('field_organization', t('Organization already exists please select it from the list'));
+        foreach($validate as $val){
+           $vid = $val->vid;
+           $vocab = taxonomy_vocabulary_load($vid);
+           $vocab_name = $vocab->name;
+           if(!empty($vocab_name)){
+               form_set_error('field_organization', t('This organization already exists under the organization type '.$vocab_name.'. Select the existing organization or provide a unique name for the new organization.'));
+           }
         }
-        $uvalues=$form_state['values']['field_unique_id'];
-        if(!empty($uvalues)){
-            $uvalue=$form_state['values']['field_unique_id']['und'][0]['value'];
-            $result= db_select('field_data_field_unique_id', 'a')
+        $uvalues=$form_state['values']['field_unique_id']['und'][0]['value'];
+     
+	   global $user;
+		if (array_key_exists(11, $user->roles)) {
+                $uvalue=$form_state['values']['field_unique_id']['und'][0]['value'];
+                	if ($uvalue==''){
+                	form_set_error('field_organization', t('Unique ID cannot be blank'));
+                	}
+                $result= db_select('field_data_field_unique_id', 'a')
                     ->fields('a', array('field_unique_id_value'))
                     ->condition('entity_type', 'taxonomy_term','=')
                     ->condition('field_unique_id_value', $uvalue, '=')
@@ -45,7 +56,8 @@ function idm_user_validation_validate_register_form(&$form, &$form_state,$form_i
                 if ($result){
                     form_set_error('field_organization', t('Unique ID already exists'));
                 }
-            }
+
+           }
         }
     }
 }
