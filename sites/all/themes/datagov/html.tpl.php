@@ -61,7 +61,7 @@
                 $("#edit-field-organization").css("display","none");
 
             }*/
-
+            $("#edit-field-agency").css("display","none");
             $("#edit-field-organization-type-und").live("change", function() {
                 var one = $(this).val();
 
@@ -88,6 +88,9 @@
                 if(one ==="Other") {
                     $("#edit-field-other-organization").css("display","block");
 
+                }
+                if(one ==="Federal Government") {
+                    $("#edit-field-agency").css("display","block");
                 }
 
 
