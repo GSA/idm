@@ -187,7 +187,7 @@ class hs_taxonomy_views_handler_filter_term_node_tid extends views_handler_filte
   /**
    * Validate the exposed filter form
    */
-  function exposed_validate(&$form, &$form_state) {
+  function exposed_validate($form, &$form_state) {
     // No validation necessary when the filter is not exposed or when no
     // identifier is set.
     if (empty($this->options['exposed']) || empty($this->options['expose']['identifier'])) {
