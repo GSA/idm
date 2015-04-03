@@ -89,9 +89,7 @@
                     $("#edit-field-other-organization").css("display","block");
 
                 }
-                if(one ==="Federal Government") {
-                    $("#edit-field-agency").css("display","block");
-                }
+
 
 
             });
