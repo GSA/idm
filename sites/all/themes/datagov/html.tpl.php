@@ -61,7 +61,7 @@
                 $("#edit-field-organization").css("display","none");
 
             }*/
-            $("#edit-field-agency").css("display","none");
+
             $("#edit-field-organization-type-und").live("change", function() {
                 var one = $(this).val();
 
