@@ -37,7 +37,7 @@ function password_policy_password_tab($form, &$form_state, $account) {
     }
     // The user must enter their current password to change to a new one.
     if (isset($protected_values['pass'])) {
-      $form['current_pass_required_values'] = array(
+      $form['account']['current_pass_required_values'] = array(
         '#type' => 'value',
         '#value' => array('pass' => $protected_values['pass']),
       );
@@ -99,7 +99,7 @@ function password_policy_password_tab_submit($form, &$form_state) {
 
   user_module_invoke('submit', $form_state['values'], $account, 'account');
   user_save($account, array('pass' => $form_state['values']['pass']));
-  unset($_SESSION['pass_reset_'. $account->uid]);
+  unset($_SESSION['pass_reset_' . $account->uid]);
   drupal_set_message(t('Password has been changed.'));
 
   if (variable_get('password_policy_password_tab_redirect', '') && !preg_match('/[?&]destination=/', $form['#action'])) {

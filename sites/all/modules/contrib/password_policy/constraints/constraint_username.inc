@@ -40,22 +40,32 @@ function password_policy_constraint_username_validate($password, $constraint, $a
  * Javascript portion.
  */
 function password_policy_constraint_username_js($constraint, $account) {
+  // Add username as JavaScript setting.
   $username = isset($account->name) ? $account->name : '';
-  $s = '';
-  $s .= "  var usernameInput=jQuery('input.username');\n";
-  $s .= "  if (usernameInput.length) {\n";
-  $s .= "    var username=usernameInput.val();\n";
-  $s .= "  }\n";
-  $s .= "  else {\n";
-  $s .= "    var username='$username';\n";
-  $s .= "  }\n";
-  $s .= "  if (username) {\n";
-  $s .= "    var username_lowercase=username.toLowerCase();\n";
-  $s .= "    var password_lowercase=value.toLowerCase();\n";
-  $s .= "    if (password_lowercase.indexOf(username_lowercase) != -1) {\n";
-  $s .= "      strength=\"low\";\n";
-  $s .= "      msg.push(translate.constraint_username);\n";
-  $s .= "    }\n";
-  $s .= "  }\n";
-  return $s;
+  $data = array(
+    'password_policy' => array(
+      'username' => $username,
+    ),
+  );
+  drupal_add_js($data, 'setting');
+
+  return <<<JS
+
+    var username = '';
+    var usernameInput = jQuery('input.username');
+    if (usernameInput.length) {
+      username = usernameInput.val();
+    }
+    else {
+      username = Drupal.settings.password_policy.username;
+    }
+    if (username) {
+      var username_lowercase = username.toLowerCase();
+      var password_lowercase = value.toLowerCase();
+      if (password_lowercase.indexOf(username_lowercase) != -1) {
+        strength = "low";
+        msg.push(translate.constraint_username);
+      }
+    }
+JS;
 }

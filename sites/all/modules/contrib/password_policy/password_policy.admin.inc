@@ -45,7 +45,7 @@ function password_policy_admin_settings() {
     '#type' => 'radios',
     '#title' => t('Blocking expired accounts'),
     '#default_value' => variable_get('password_policy_block', 0),
-    '#options' => array('0' => t('Expired accounts are blocked. Only administrators can unblock them. Users whose accounts have expired will be forced to change their passwords at next login (after being unblocked).'), '1' => t('Expired accounts are not blocked. Users whose accounts have expired will be forced to change their passwords at next login.')),
+    '#options' => array('0' => t('Expired accounts are blocked. Only administrators can unblock them. Once unblocked, users can log in and will be forced to change their password. If they do not log in and change their password within one day, they will be blocked again.'), '1' => t('Expired accounts are not blocked. Users whose accounts have expired will be forced to change their passwords at next login.')),
   );
 
   // Visibility.
@@ -57,9 +57,9 @@ function password_policy_admin_settings() {
   );
   $form['visibility']['password_policy_show_restrictions'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Show restrictions on password change page.'),
+    '#title' => t('Show all restrictions on password change page.'),
     '#default_value' => variable_get('password_policy_show_restrictions', 0),
-    '#description' => t('Should password restrictions be listed on the password change page. A javascript warning block will be shown anyways if ithe typed in password does not meet the restrictions.'),
+    '#description' => t('List all password restrictions on the password change page. The list is displayed in addition to the default dynamic, JavaScript-generated list of only the restrictions the typed password does not meet. Enabling this setting allows a user who is not using JavaScript to see the password restrictions prior to submitting their password.'),
   );
 
   // E-mail notification settings.
@@ -566,7 +566,8 @@ function password_policy_password_change_settings_submit($form, &$form_state) {
   if ($form_state['values']['password_policy_new_login_change'] == 1) {
     watchdog('password_policy', 'New user accounts must change password on new login enabled by !admin', array('!admin' => $user->name), WATCHDOG_NOTICE);
   }
-  ($form_state['values']['password_policy_new_login_change']) ? drupal_set_message(t('New users will be required to change their password on first-time login.')) : drupal_set_message(t('New users will not be required to change their pasword on first-time login.'));
+  ($form_state['values']['password_policy_new_login_change']) ? drupal_set_message(t('New users will be required to change their password on first-time login.')) : drupal_set_message(t('New users will not be required to change their password on first-time login.'));
+
   foreach ($form_state['values']['password_policy_force_change_roles'] as $role) {
     // Skip over null values returned by unselected roles.
     if ($role == 0) {

@@ -51,34 +51,34 @@ function password_policy_constraint_digit_placement_validate($password, $constra
  * Javascript portion.
  */
 function password_policy_constraint_digit_placement_js($constraint, $account) {
-  return <<<JSS
-  function substr_count(haystack, needle) {
-    var pos = 0, cnt = 0;
+  return <<<JS
 
-    haystack += '';
-    needle += '';
-    var offset = 0;
-    var length = 0;
-    offset--;
+    function substr_count(haystack, needle) {
+      var cnt = 0;
 
-    while ((offset = haystack.indexOf(needle, offset+1)) != -1) {
-      if (length > 0 && (offset+needle.length) > length) {
-        return false;
-      } else {
+      haystack += '';
+      needle += '';
+      var offset = 0;
+      var length = 0;
+      offset--;
+
+      while ((offset = haystack.indexOf(needle, offset + 1)) != -1) {
+        if (length > 0 && (offset + needle.length) > length) {
+          return false;
+        }
         cnt++;
       }
+      return cnt;
     }
-    return cnt;
-  }
 
-  var i=0;
-  var num=0;
-  for (i=0;i<10;i++) {
-    num += substr_count(value, i);
-  }
-  if (num<$constraint && value.match(/^(\d+)|(\d+)$/) != null) {
-    strength="low";
-    msg.push(translate.constraint_digit_placement);
-  }
-JSS;
+    var i = 0;
+    var num = 0;
+    for (i = 0; i < 10; i++) {
+      num += substr_count(value, i);
+    }
+    if (num < $constraint && value.match(/^(\d+)|(\d+)$/) != null) {
+      strength = "low";
+      msg.push(translate.constraint_digit_placement);
+    }
+JS;
 }

@@ -45,6 +45,15 @@ The module also implements configurable password expiration features:
     (configurable) before the password expires.
   * Warning e-mail message's subject and body are configurable.
 
+Limitations
+==========================================
+Password policies only apply to passwords set via user forms in the web
+interface. Passwords changed by other means (Drush, web services, etc.) will
+not be subject to password policy constraints. Please see the following issue
+if you would like to contribute to removing this limitation:
+
+	https://www.drupal.org/node/2451159
+
 Security note
 ==========================================
 Enforcing tough policy is only good from a technical standpoint. You are 
@@ -56,11 +65,6 @@ writing passwords on a Post-it on the backside of their keyboard.
 
 Consider a company policy to use strong password generator tools like
 http://supergenpass.com/ or 1Password on MacOS.
-
-Requirements
-==========================================
-Drupal 6.x
-MySQL 5.0.3 or something else which supports varchar > 255
 
 Credits
 ==========================================

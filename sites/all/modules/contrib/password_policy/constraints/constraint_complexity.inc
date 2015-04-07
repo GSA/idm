@@ -55,36 +55,37 @@ function password_policy_constraint_complexity_validate($password, $constraint, 
  * Javascript portion.
  */
 function password_policy_constraint_complexity_js($constraint, $account) {
-  $s = '';
-  $s .= "  var i=0;\n";
-  $s .= "  var num=0;\n";
-  $s .= "  var upper=0;\n";
-  $s .= "  var lower=0;\n";
-  $s .= "  var digit=0;\n";
-  $s .= "  var punct=0;\n";
-  $s .= "  var chr=\"\";\n";
-  $s .= "  while(i<value.length) {\n";
-  $s .= "    chr=value.charAt(i);\n";
-  $s .= "    if(chr.toUpperCase() != chr.toLowerCase()) {\n";
-  $s .= "      if(chr == chr.toUpperCase()) {\n";
-  $s .= "        upper=1;\n";
-  $s .= "      }\n";
-  $s .= "      else {\n";
-  $s .= "        lower=1;\n";
-  $s .= "      }\n";
-  $s .= "    }\n";
-  $s .= "    else if(\"1234567890\".indexOf(chr) != -1) {\n";
-  $s .= "      digit=1;\n";
-  $s .= "    }\n";
-  $s .= "    else if(chr.toUpperCase() == chr.toLowerCase() && \"1234567890\".indexOf(chr) == -1 && chr != ' ') {\n";
-  $s .= "      punct=1;\n";
-  $s .= "    }\n";
-  $s .= "    i++;\n";
-  $s .= "  }\n";
-  $s .= "  num=upper+lower+digit+punct\n";
-  $s .= "  if (num<$constraint) {\n";
-  $s .= "    strength=\"low\";\n";
-  $s .= "    msg.push(translate.constraint_complexity);\n";
-  $s .= "  }\n";
-  return $s;
+  return <<<JS
+
+    var i = 0;
+    var num = 0;
+    var upper = 0;
+    var lower = 0;
+    var digit = 0;
+    var punct = 0;
+    var chr = "";
+    while (i < value.length) {
+      chr = value.charAt(i);
+      if (chr.toUpperCase() != chr.toLowerCase()) {
+        if (chr == chr.toUpperCase()) {
+          upper = 1;
+        }
+        else {
+          lower = 1;
+        }
+      }
+      else if ("1234567890".indexOf(chr) != -1) {
+        digit = 1;
+      }
+      else if (chr.toUpperCase() == chr.toLowerCase() && "1234567890".indexOf(chr) == -1 && chr != ' ') {
+        punct = 1;
+      }
+      i++;
+    }
+    num = upper + lower + digit + punct;
+    if (num < $constraint) {
+      strength = "low";
+      msg.push(translate.constraint_complexity);
+    }
+JS;
 }

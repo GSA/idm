@@ -34,10 +34,11 @@ function password_policy_constraint_length_validate($password, $constraint, $acc
  * Javascript portion.
  */
 function password_policy_constraint_length_js($constraint, $account) {
-  $s = '';
-  $s .= "  if (!value.length || value.length<$constraint) {\n";
-  $s .= "    strength=\"low\";\n";
-  $s .= "    msg.push(translate.constraint_length);\n";
-  $s .= "  }\n";
-  return $s;
+  return <<<JS
+
+    if (!value.length || value.length < $constraint) {
+      strength = "low";
+      msg.push(translate.constraint_length);
+    }
+JS;
 }
