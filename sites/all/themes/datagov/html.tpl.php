@@ -51,6 +51,33 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <?php endif; ?>
   <?php print $scripts; ?>
+  <!-- federated_analytics start -->
+<script id="_fed_an_ua_tag" src="https://analytics.usa.gov/dap/dap.min.js?agency=GSA"></script>
+<!-- federated_analytics end --> 
+<script type="text/javascript">
+	var _gaq = _gaq || [];
+  
+	_gaq.push(['_setAccount', 'UA-17367410-17']);
+    _gaq.push(['_addDevId', 'i9k95']); // Google Analyticator App ID with Google
+    _gaq.push(['_gat._anonymizeIp']);
+	_gaq.push(['_trackPageview']);
+	<!-- tracking for UA-42145528-2  start -->
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-42145528-2', 'auto');
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+<!-- tracking for UA-42145528-2  end -->
+
+	(function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	})();
+</script>
     <script type="text/javascript">
 
 
@@ -61,7 +88,7 @@
                 $("#edit-field-organization").css("display","none");
 
             }*/
-            $("#edit-field-agency").css("display","none");
+
             $("#edit-field-organization-type-und").live("change", function() {
                 var one = $(this).val();
 
@@ -89,9 +116,7 @@
                     $("#edit-field-other-organization").css("display","block");
 
                 }
-                if(one ==="Federal Government") {
-                    $("#edit-field-agency").css("display","block");
-                }
+
 
 
             });
