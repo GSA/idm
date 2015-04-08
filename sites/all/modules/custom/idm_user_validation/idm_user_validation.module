@@ -29,6 +29,7 @@ function idm_user_validation_validate_register_form(&$form, &$form_state) {
    if($typeofuser=="Publisher") {
         $tname = $form_state['values']['field_organization'];
         $name= $tname['und'][0]['value'];
+        if ($name !=''){
         $validate=taxonomy_get_term_by_name($name);
         foreach($validate as $val){
            $vid = $val->vid;
@@ -37,6 +38,7 @@ function idm_user_validation_validate_register_form(&$form, &$form_state) {
            if(!empty($vocab_name)){
                form_set_error('field_organization', t('This organization already exists under the organization type '.$vocab_name.'. Select the existing organization or provide a unique name for the new organization.'));
            }
+        }
         }
         $uvalues=$form_state['values']['field_unique_id']['und'][0]['value'];
      
